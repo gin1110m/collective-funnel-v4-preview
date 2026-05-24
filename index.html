@@ -488,24 +488,25 @@ html.solo-mode section.day .day-header { margin-top: 0; }
   display: none !important;
 }
 
-/* Zoom 個別相談ブロックは Zoom Blue (#2D8CFF) に固定 */
+/* Zoom 個別相談ブロックは他と同じトーン+左barだけ Zoom Blue (#2D8CFF) */
 .funnel-step[data-color="meet"],
 [data-theme="dark"] .funnel-step[data-color="meet"] {
-  background: #2D8CFF !important;
-  color: #FFFFFF !important;
-  border-color: #2D8CFF !important;
+  background: var(--bg-elev) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--hairline) !important;
+  border-left: 4px solid #2D8CFF !important;
 }
 .funnel-step[data-color="meet"] .step-title,
 [data-theme="dark"] .funnel-step[data-color="meet"] .step-title {
-  color: #FFFFFF !important;
+  color: var(--text) !important;
 }
 .funnel-step[data-color="meet"] .step-tag,
 [data-theme="dark"] .funnel-step[data-color="meet"] .step-tag {
-  color: rgba(255,255,255,0.9) !important;
+  color: #2D8CFF !important;
 }
 .funnel-step[data-color="meet"] .step-desc,
 [data-theme="dark"] .funnel-step[data-color="meet"] .step-desc {
-  color: rgba(255,255,255,0.85) !important;
+  color: var(--text-soft) !important;
 }
 .layout {
   grid-template-columns: minmax(0, 1fr) !important;
