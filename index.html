@@ -1,0 +1,2710 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>COLLECTIVE LINEファネル v4</title>
+<style>
+/* ============================================
+   FUNNEL v4 ／ READING EXPERIENCE
+   Magazine-grade layout with light/dark modes,
+   scroll progress, chapter navigation, and
+   reading controls.
+   ============================================ */
+:root {
+  color-scheme: light dark;
+  --bg: #FAFAF6;
+  --bg-elev: #FFFFFF;
+  --bg-deep: #F2F1EC;
+  --text: #0A0A0A;
+  --text-soft: #5C5C5C;
+  --text-fade: #8A8A85;
+  --hairline: rgba(10,10,10,0.07);
+  --hairline-strong: rgba(10,10,10,0.16);
+  --shadow-soft: 0 1px 2px rgba(10,10,10,0.04), 0 4px 14px rgba(10,10,10,0.04);
+  --shadow-card: 0 1px 3px rgba(10,10,10,0.06), 0 12px 32px -8px rgba(10,10,10,0.08);
+  /* Day別テーマカラー（彩度調整：読みやすさ重視） */
+  --c-why: #B83D2F;
+  --c-why-soft: #F7EBE8;
+  --c-why-deep: #6B221A;
+  --c-how: #2A5F87;
+  --c-how-soft: #E6EEF5;
+  --c-how-deep: #163A56;
+  --c-proof: #2F6F4A;
+  --c-proof-soft: #E5F0E9;
+  --c-proof-deep: #14422A;
+  --c-sales: #A07309;
+  --c-sales-soft: #F7EFD9;
+  --c-sales-deep: #5C4106;
+  --c-text-msg: #6B5B47;
+  --c-text-msg-soft: #EFE9DD;
+  --c-text-msg-deep: #3D3424;
+  /* 現在のアクセント(JSで動的に切替) */
+  --accent: var(--c-why);
+  --accent-soft: var(--c-why-soft);
+  --accent-deep: var(--c-why-deep);
+  /* リーディング設定（JSで調整） */
+  --read-scale: 1;
+  --content-max: 720px;
+  /* タイポスケール */
+  --type-eyebrow: 11px;
+  --type-meta: 12.5px;
+  --type-base: 16.5px;
+  --type-lead: 18px;
+  --type-h4: 18px;
+  --type-h3: 26px;
+  --type-h2: 38px;
+  --type-h1: 56px;
+  --type-display: 96px;
+}
+[data-current="why"] { --accent: var(--c-why); --accent-soft: var(--c-why-soft); --accent-deep: var(--c-why-deep); }
+[data-current="how"] { --accent: var(--c-how); --accent-soft: var(--c-how-soft); --accent-deep: var(--c-how-deep); }
+[data-current="proof"] { --accent: var(--c-proof); --accent-soft: var(--c-proof-soft); --accent-deep: var(--c-proof-deep); }
+[data-current="sales"] { --accent: var(--c-sales); --accent-soft: var(--c-sales-soft); --accent-deep: var(--c-sales-deep); }
+[data-current="welcome"], [data-current="voice"], [data-current="closing"] { --accent: var(--c-text-msg); --accent-soft: var(--c-text-msg-soft); --accent-deep: var(--c-text-msg-deep); }
+
+/* ===== ダークモード ===== */
+[data-theme="dark"] {
+  --bg: #0E0E10;
+  --bg-elev: #17171A;
+  --bg-deep: #08080A;
+  --text: #F2F2EF;
+  --text-soft: #A8A8A2;
+  --text-fade: #6B6B66;
+  --hairline: rgba(255,255,255,0.08);
+  --hairline-strong: rgba(255,255,255,0.18);
+  --shadow-soft: 0 1px 2px rgba(0,0,0,0.5), 0 4px 14px rgba(0,0,0,0.25);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 16px 40px -8px rgba(0,0,0,0.35);
+  --c-why: #E66B5C;
+  --c-why-soft: rgba(230,107,92,0.12);
+  --c-why-deep: #F4A698;
+  --c-how: #5BA0CC;
+  --c-how-soft: rgba(91,160,204,0.12);
+  --c-how-deep: #A9D2E8;
+  --c-proof: #5BAB7F;
+  --c-proof-soft: rgba(91,171,127,0.12);
+  --c-proof-deep: #A9D7BA;
+  --c-sales: #D6A93C;
+  --c-sales-soft: rgba(214,169,60,0.12);
+  --c-sales-deep: #E8CC8A;
+  --c-text-msg: #B9A380;
+  --c-text-msg-soft: rgba(185,163,128,0.12);
+  --c-text-msg-deep: #E5D4B5;
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100vw; }
+body {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic Medium", YuGothic, "Meiryo", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: calc(var(--type-base) * var(--read-scale));
+  line-height: 1.85;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-break: strict;
+  text-wrap: pretty;
+  hanging-punctuation: allow-end;
+  font-feature-settings: "palt" 1, "kern" 1;
+  overflow-x: hidden;
+  max-width: 100vw;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+.layout, .main, section, section.day, section.chapter, .day-header, .chapter-head, .callout, .case-card, .judgment-axis, .afsheen-fb, .msg-card, .msg-quote, .narration, .signature, .cta-block, .notes-box, .summary-list, .meta-box, .hero, p, ul, li { max-width: 100%; box-sizing: border-box; min-width: 0; }
+strong, b { font-weight: 700; color: var(--text); background-image: linear-gradient(transparent 60%, var(--accent-soft) 60%); padding: 0 2px; transition: background-image 0.4s ease; }
+[data-theme="dark"] strong, [data-theme="dark"] b { background-image: linear-gradient(transparent 60%, var(--accent-soft) 60%); }
+/* ダーク背景の要素では strong のハイライトを無効化（テキストが消えるのを防ぐ） */
+.narration strong, .narration b,
+.signature strong, .signature b,
+.cta-block.final strong, .cta-block.final b,
+.next-episode strong, .next-episode b,
+.funnel-step[data-color="meet"] strong, .funnel-step[data-color="meet"] b {
+  background: none !important;
+  background-image: none !important;
+  padding: 0 !important;
+  color: inherit;
+}
+h1, h2, h3, h4 { font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; text-wrap: balance; }
+.no-break { white-space: nowrap; }
+
+/* ===== 背景 ノイズテクスチャ ===== */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.5; mix-blend-mode: multiply;
+}
+[data-theme="dark"] body::before { opacity: 0.35; mix-blend-mode: screen; }
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: radial-gradient(ellipse at 20% 0%, var(--accent-soft) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 100%, var(--accent-soft) 0%, transparent 60%);
+  opacity: 0.6; transition: opacity 0.6s ease;
+}
+[data-theme="dark"] body::after { opacity: 0.4; }
+
+/* ===== スクロール進捗バー ===== */
+.scroll-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: transparent; z-index: 200; pointer-events: none; }
+.scroll-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-deep)); transition: width 0.1s linear, background 0.6s ease; box-shadow: 0 0 8px var(--accent); }
+
+/* ===== Floating Controls (右上) ===== */
+.controls { position: fixed; top: 14px; right: 14px; display: flex; gap: 6px; z-index: 150; }
+.ctrl-btn {
+  width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--hairline-strong);
+  background: var(--bg-elev); color: var(--text); font-size: 14px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-soft);
+  transition: all 0.15s ease;
+}
+.ctrl-btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); transform: translateY(-1px); }
+.ctrl-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.ctrl-btn[aria-label]::after { content: attr(aria-label); position: absolute; bottom: -28px; right: 0; font-size: 10px; padding: 4px 8px; background: var(--text); color: var(--bg); border-radius: 4px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+.ctrl-btn:hover::after { opacity: 0.95; }
+
+/* ===== レイアウト(デスクトップ ≥1280: 3カラム / 1024-1279: 2カラム / 768-1023: 2カラム狭 / <768: 1カラム) ===== */
+.layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 240px;
+  gap: 0;
+  max-width: 1600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.main { padding: 80px 64px 120px; min-width: 0; position: relative; }
+.toc-rail { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 80px 28px 40px; border-left: 1px solid var(--hairline); }
+.toc-rail::-webkit-scrollbar { width: 4px; }
+.toc-rail::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: 2px; }
+.toc-rail-title { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; color: var(--text-fade); text-transform: uppercase; margin-bottom: 16px; }
+.toc-rail ul { list-style: none; padding: 0; margin: 0 0 32px; }
+.toc-rail ul li { margin-bottom: 2px; }
+.toc-rail ul a {
+  display: block; padding: 6px 12px; font-size: 12px; font-weight: 500;
+  color: var(--text-soft); text-decoration: none; line-height: 1.45;
+  border-left: 2px solid transparent; transition: all 0.18s ease;
+}
+.toc-rail ul a:hover { color: var(--accent); border-left-color: var(--accent); padding-left: 14px; }
+.toc-rail ul a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 700; }
+.toc-rail .toc-meta { padding: 14px 14px; background: var(--bg-elev); border: 1px solid var(--hairline); border-radius: 10px; margin-bottom: 20px; }
+.toc-rail .toc-meta-label { font-size: 9.5px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-fade); text-transform: uppercase; margin-bottom: 6px; }
+.toc-rail .toc-meta-value { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.4; }
+.toc-rail .toc-meta-sub { font-size: 11px; color: var(--text-soft); margin-top: 4px; }
+.toc-rail .toc-shortcuts { padding: 14px; background: var(--bg-elev); border: 1px solid var(--hairline); border-radius: 10px; font-size: 11px; line-height: 1.7; color: var(--text-soft); }
+.toc-rail .toc-shortcuts kbd { display: inline-block; min-width: 18px; padding: 1px 6px; background: var(--bg-deep); border: 1px solid var(--hairline-strong); border-radius: 4px; font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 10.5px; font-weight: 700; color: var(--text); margin-right: 4px; text-align: center; }
+.toc-rail .toc-shortcuts-title { font-size: 9.5px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-fade); text-transform: uppercase; margin-bottom: 8px; }
+
+/* ===== サイドバー ===== */
+.sidebar { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 40px 28px; background: linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%); border-right: 1px solid var(--hairline); }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: 2px; }
+.sidebar-brand { font-size: var(--type-eyebrow); font-weight: 700; letter-spacing: 0.22em; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; transition: color 0.5s ease; }
+.sidebar-title { font-size: 13px; font-weight: 700; line-height: 1.45; margin-bottom: 28px; color: var(--text-soft); letter-spacing: 0.04em; }
+.sidebar-current { background: var(--bg-elev); border: 1px solid var(--hairline); border-left: 3px solid var(--accent); padding: 16px 18px; margin-bottom: 28px; border-radius: 0 12px 12px 0; box-shadow: var(--shadow-soft); transition: border-color 0.5s ease; }
+.sidebar-current-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; transition: color 0.5s ease; }
+.sidebar-current-day { font-size: 11px; font-weight: 700; color: var(--text-fade); margin-bottom: 4px; letter-spacing: 0.05em; }
+.sidebar-current-title { font-size: 15px; font-weight: 700; line-height: 1.4; letter-spacing: -0.01em; }
+.sidebar-current-chapter { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--hairline-strong); font-size: 12px; font-weight: 500; color: var(--text-soft); line-height: 1.5; }
+.sidebar-nav-title { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; color: var(--text-fade); text-transform: uppercase; margin: 24px 0 12px; }
+.sidebar-nav { list-style: none; }
+.sidebar-nav li { margin-bottom: 2px; }
+.sidebar-nav a { display: flex; gap: 10px; padding: 10px 12px; font-size: 13px; font-weight: 600; color: var(--text-soft); text-decoration: none; border-radius: 8px; transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); line-height: 1.4; border: 1px solid transparent; }
+.sidebar-nav a:hover { background: var(--bg-elev); color: var(--text); border-color: var(--hairline); transform: translateX(2px); }
+.sidebar-nav a.active { background: var(--bg-elev); color: var(--accent); border-color: var(--hairline); box-shadow: var(--shadow-soft); font-weight: 700; }
+.sidebar-nav .day-tag { flex-shrink: 0; font-size: 10px; font-weight: 800; color: var(--text-fade); min-width: 34px; padding-top: 1px; letter-spacing: 0.05em; }
+.sidebar-nav a.active .day-tag { color: var(--accent); }
+.sidebar-nav .label { flex: 1; }
+
+/* ===== ヒーロー ===== */
+.hero { margin-bottom: 96px; padding: 32px 0 48px; position: relative; }
+.hero .eyebrow { font-size: var(--type-eyebrow); font-weight: 700; letter-spacing: 0.24em; color: var(--accent); text-transform: uppercase; margin-bottom: 24px; transition: color 0.5s ease; display: inline-flex; align-items: center; gap: 10px; }
+.hero .eyebrow::before { content: ""; width: 32px; height: 1px; background: var(--accent); transition: background 0.5s ease; }
+.hero h1 { font-size: clamp(34px, 6vw, var(--type-h1)); font-weight: 800; line-height: 1.08; letter-spacing: -0.035em; margin-bottom: 24px; max-width: 900px; }
+.hero .lead { font-size: clamp(15px, 1.5vw, var(--type-lead)); line-height: 1.75; color: var(--text-soft); max-width: 680px; font-weight: 400; }
+.meta-box { background: var(--bg-elev); border: 1px solid var(--hairline); padding: 28px 32px; margin: 40px 0 0; border-radius: 16px; box-shadow: var(--shadow-soft); max-width: 720px; }
+.meta-box dl { display: grid; grid-template-columns: max-content 1fr; column-gap: 28px; row-gap: 12px; font-size: 14px; }
+.meta-box dt { font-weight: 700; color: var(--text-fade); white-space: nowrap; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; padding-top: 2px; }
+.meta-box dd { font-weight: 500; color: var(--text); line-height: 1.65; }
+
+/* ===== Day セクション(フルブリードカラーバナー) ===== */
+section.day { margin-top: 0; scroll-margin-top: 24px; padding-top: 8px; position: relative; }
+section.day[data-day="why"] { --accent: var(--c-why); --accent-soft: var(--c-why-soft); --accent-deep: var(--c-why-deep); }
+section.day[data-day="how"] { --accent: var(--c-how); --accent-soft: var(--c-how-soft); --accent-deep: var(--c-how-deep); }
+section.day[data-day="proof"] { --accent: var(--c-proof); --accent-soft: var(--c-proof-soft); --accent-deep: var(--c-proof-deep); }
+section.day[data-day="sales"] { --accent: var(--c-sales); --accent-soft: var(--c-sales-soft); --accent-deep: var(--c-sales-deep); }
+section.day[data-day="welcome"], section.day[data-day="voice"], section.day[data-day="closing"] { --accent: var(--c-text-msg); --accent-soft: var(--c-text-msg-soft); --accent-deep: var(--c-text-msg-deep); }
+
+.day-header {
+  margin: 0 -56px 56px;
+  padding: 64px 56px 56px;
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--bg) 80%);
+  border: none;
+  border-radius: 0;
+  border-left: none;
+  position: relative;
+  overflow: hidden;
+}
+.day-header::before {
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 6px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+}
+.day-header::after {
+  content: attr(data-bignum);
+  position: absolute; right: 32px; bottom: -8px; font-size: clamp(80px, 18vw, 220px); font-weight: 800; color: var(--accent);
+  opacity: 0.07; line-height: 1; letter-spacing: -0.06em; pointer-events: none; user-select: none;
+}
+.day-header.text-msg { background: linear-gradient(135deg, var(--accent-soft) 0%, var(--bg) 100%); }
+.day-header .day-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; background: var(--accent); color: var(--bg);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  border-radius: 100px; margin-bottom: 24px;
+}
+.day-header .day-kind { display: none; }
+.day-header .day-role, .day-header .day-meta { display: none; }
+.hero .lead, .hero .meta-box, .meta-box { display: none; }
+.day-header h2 {
+  font-size: clamp(26px, 4.5vw, var(--type-h2)); font-weight: 800; line-height: 1.18;
+  letter-spacing: -0.028em; margin-bottom: 20px; color: var(--text); max-width: 760px;
+}
+.day-header.text-msg h2 { color: var(--text); }
+.day-header .day-role { font-size: 15px; color: var(--text-soft); font-weight: 500; line-height: 1.7; max-width: 680px; }
+.day-header .day-meta { font-size: 12.5px; color: var(--text-fade); font-weight: 500; margin-top: 20px; max-width: 680px; line-height: 1.6; }
+.day-header .day-meta b { color: var(--text); font-weight: 700; }
+
+/* ===== 章 ===== */
+section.chapter {
+  margin-top: 64px; scroll-margin-top: 24px; padding-top: 8px;
+  max-width: var(--content-max); position: relative;
+}
+.chapter-head {
+  display: flex; align-items: baseline; gap: 18px; margin-bottom: 28px; padding-bottom: 18px;
+  border-bottom: 1px solid var(--hairline);
+  position: relative;
+}
+.chapter-num {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.18em; color: var(--accent);
+  font-variant-numeric: tabular-nums; position: relative;
+}
+.chapter-head h3 {
+  font-size: clamp(20px, 2.8vw, var(--type-h3)); font-weight: 700; line-height: 1.3;
+  letter-spacing: -0.018em; flex: 1; padding: 0; border: none; color: var(--text);
+}
+.duration {
+  font-size: 11px; color: var(--text-fade); font-weight: 600; white-space: nowrap;
+  padding: 3px 10px; border: 1px solid var(--hairline-strong); border-radius: 100px;
+  letter-spacing: 0.05em;
+}
+
+h4 {
+  font-size: var(--type-h4); font-weight: 700; margin: 32px 0 14px;
+  padding-left: 14px; border-left: 3px solid var(--accent);
+  letter-spacing: -0.012em; line-height: 1.4;
+}
+p { margin-bottom: 18px; font-size: calc(var(--type-base) * var(--read-scale)); line-height: 1.95; color: var(--text); max-width: var(--content-max); }
+
+/* ===== コンポーネント ===== */
+.narration {
+  background: var(--text); color: var(--bg); padding: 26px 30px; margin: 28px 0;
+  border-radius: 18px; font-size: 15.5px; line-height: 1.85; font-weight: 500;
+  max-width: var(--content-max); position: relative; box-shadow: var(--shadow-card);
+}
+.narration::before {
+  content: "▶ NARRATION"; display: block; font-size: 9.5px; font-weight: 700; letter-spacing: 0.28em;
+  text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 14px;
+}
+.narration p { margin-bottom: 0; color: inherit; max-width: none; }
+[data-theme="dark"] .narration { background: var(--bg-elev); color: var(--text); border: 1px solid var(--hairline-strong); }
+[data-theme="dark"] .narration::before { color: var(--accent); }
+
+.callout {
+  background: var(--accent-soft); border-left: 3px solid var(--accent);
+  padding: 22px 26px; margin: 24px 0; border-radius: 0 14px 14px 0;
+  max-width: var(--content-max);
+}
+.callout p { margin-bottom: 12px; font-size: 16px; }
+.callout p:last-child { margin-bottom: 0; }
+.callout strong { background-image: linear-gradient(transparent 60%, var(--bg) 60%); }
+
+.signature {
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent-deep) 100%);
+  color: var(--bg); padding: 36px 32px; margin: 36px 0; border-radius: 20px;
+  text-align: center; max-width: var(--content-max); position: relative; overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.signature::before {
+  content: ""; position: absolute; inset: 0; opacity: 0.4;
+  background: radial-gradient(circle at 30% 20%, var(--accent) 0%, transparent 60%);
+  pointer-events: none;
+}
+.signature .label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(255,255,255,0.6); margin-bottom: 16px; position: relative;
+}
+.signature .quote {
+  font-size: clamp(18px, 2.6vw, 26px); font-weight: 700; line-height: 1.45;
+  letter-spacing: -0.012em; position: relative; color: var(--bg);
+}
+[data-theme="dark"] .signature { background: linear-gradient(135deg, var(--bg-elev) 0%, var(--accent-soft) 100%); border: 1px solid var(--hairline-strong); }
+[data-theme="dark"] .signature .label { color: var(--accent); }
+[data-theme="dark"] .signature .quote { color: var(--text); }
+
+.situation {
+  background: var(--bg-elev); border: 1px solid var(--hairline);
+  padding: 18px 22px; margin: 12px 0; border-radius: 10px;
+  font-size: 15px; font-weight: 500; line-height: 1.7;
+  max-width: var(--content-max); box-shadow: var(--shadow-soft);
+  position: relative; padding-left: 48px;
+}
+.situation::before {
+  content: "“"; position: absolute; left: 18px; top: 4px;
+  font-size: 36px; font-weight: 800; color: var(--accent); line-height: 1; opacity: 0.5;
+}
+
+.case-block { background: var(--bg-elev); border: 1px solid var(--hairline); padding: 22px 26px; margin: 22px 0; border-radius: 14px; max-width: var(--content-max); box-shadow: var(--shadow-soft); }
+.case-block .case-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+
+.summary-list { background: var(--bg-elev); border: 1px solid var(--hairline); padding: 22px 26px; margin: 20px 0; border-radius: 14px; list-style: none; max-width: var(--content-max); box-shadow: var(--shadow-soft); }
+.summary-list li { padding: 10px 0; border-bottom: 1px dashed var(--hairline); font-size: 14.5px; line-height: 1.7; }
+.summary-list li:last-child { border-bottom: none; }
+.summary-list li strong { color: var(--accent); margin-right: 8px; background: none; padding: 0; }
+
+.cta-block {
+  background: var(--accent-soft); border-left: 3px solid var(--accent);
+  padding: 24px 28px; margin: 24px 0; border-radius: 0 16px 16px 0;
+  max-width: var(--content-max);
+}
+.cta-block .cta-label { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.cta-block.final {
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent-deep) 100%);
+  color: var(--bg); border-left: none; border-radius: 18px;
+  box-shadow: var(--shadow-card); position: relative; overflow: hidden;
+}
+.cta-block.final::before {
+  content: ""; position: absolute; inset: 0; opacity: 0.3;
+  background: radial-gradient(circle at 80% 30%, var(--accent) 0%, transparent 60%);
+}
+.cta-block.final .cta-label { color: rgba(255,255,255,0.65); position: relative; }
+.cta-block.final p { color: var(--bg); position: relative; }
+.cta-block.final strong { color: var(--bg); background-image: linear-gradient(transparent 60%, var(--accent) 60%); }
+[data-theme="dark"] .cta-block.final { background: linear-gradient(135deg, var(--bg-elev) 0%, var(--accent-soft) 100%); border: 1px solid var(--hairline-strong); }
+[data-theme="dark"] .cta-block.final p, [data-theme="dark"] .cta-block.final strong { color: var(--text); }
+
+.next-episode { background: var(--text); color: var(--bg); padding: 22px 26px; margin: 22px 0; border-radius: 14px; max-width: var(--content-max); }
+.next-episode .label { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 12px; }
+.next-episode .title { font-size: 16px; font-weight: 700; line-height: 1.55; color: var(--bg); }
+[data-theme="dark"] .next-episode { background: var(--bg-elev); border: 1px solid var(--hairline-strong); color: var(--text); }
+[data-theme="dark"] .next-episode .title { color: var(--text); }
+
+.afsheen-fb, .judgment-axis, .case-card {
+  background: var(--bg-elev); border: 1px solid var(--hairline);
+  padding: 22px 26px; margin: 18px 0; border-radius: 14px;
+  max-width: var(--content-max); box-shadow: var(--shadow-soft);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.afsheen-fb:hover, .judgment-axis:hover, .case-card:hover {
+  transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--accent);
+}
+.afsheen-fb .num, .judgment-axis .num, .case-card .case-num {
+  display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.afsheen-fb .title, .judgment-axis .title, .case-card .case-title {
+  font-size: 17px; font-weight: 700; letter-spacing: -0.012em; margin-bottom: 12px; line-height: 1.4;
+}
+
+.msg-quote {
+  background: var(--accent-soft); border-left: 3px solid var(--accent);
+  padding: 24px 28px; margin: 18px 0; border-radius: 0 14px 14px 0;
+  font-size: 15px; line-height: 1.85; max-width: var(--content-max);
+}
+.msg-quote p { margin-bottom: 14px; }
+.msg-quote p:last-child { margin-bottom: 0; }
+
+.msg-card { background: var(--bg-elev); border: 1px solid var(--hairline); padding: 28px 32px; margin: 24px 0; border-radius: 16px; max-width: var(--content-max); box-shadow: var(--shadow-soft); }
+.msg-card .msg-label { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+
+.notes-box {
+  background: transparent; border: 1px dashed var(--hairline);
+  padding: 14px 18px; margin: 32px 0 12px; border-radius: 10px;
+  font-size: 11.5px; line-height: 1.65; color: var(--text-fade);
+  max-width: var(--content-max); opacity: 0.7;
+}
+.notes-box:hover { opacity: 1; }
+.notes-box strong { font-size: 10.5px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-fade); background: none !important; padding: 0 !important; }
+.notes-box ul { margin: 6px 0 0 18px; }
+.notes-box li { margin-bottom: 3px; font-size: 11.5px; }
+
+ul.bullet { margin: 14px 0 22px 0; padding-left: 4px; list-style: none; max-width: var(--content-max); }
+ul.bullet li { position: relative; padding-left: 24px; margin-bottom: 10px; line-height: 1.85; font-size: 15.5px; }
+ul.bullet li::before { content: ""; position: absolute; left: 2px; top: 0.85em; width: 14px; height: 2px; background: var(--accent); }
+
+.day-divider {
+  margin: 96px 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hairline-strong), transparent);
+  position: relative;
+}
+.day-divider::before {
+  content: "✦"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  background: var(--bg); padding: 0 16px; color: var(--accent); font-size: 14px;
+}
+
+/* ===== 章末ナビゲーション(JS生成) ===== */
+.chapter-nav {
+  display: flex; gap: 12px; margin: 40px 0 0; padding-top: 24px;
+  border-top: 1px solid var(--hairline); max-width: var(--content-max);
+}
+.chapter-nav-btn {
+  flex: 1; padding: 14px 18px; background: var(--bg-elev); border: 1px solid var(--hairline);
+  border-radius: 12px; cursor: pointer; text-decoration: none; color: var(--text);
+  display: flex; flex-direction: column; gap: 4px;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.chapter-nav-btn:hover { background: var(--accent-soft); border-color: var(--accent); transform: translateY(-1px); }
+.chapter-nav-btn.disabled { opacity: 0.3; pointer-events: none; }
+.chapter-nav-label { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-fade); }
+.chapter-nav-title { font-size: 13px; font-weight: 700; line-height: 1.4; }
+.chapter-nav-btn.next { text-align: right; }
+
+/* ===== Solo-Video Mode: URLパラメータ ?v=xxx で個別動画専用ページ化 ===== */
+html.solo-mode .main { padding-top: 56px; }
+html.solo-mode section.day { margin-top: 0; }
+html.solo-mode section.day .day-header { margin-top: 0; }
+@media (max-width: 767px) {
+  html.solo-mode .main { padding-top: 24px; }
+}
+
+/* ===== ファネル全体像（1枚図） ===== */
+.funnel-map {
+  margin: 24px 0 96px;
+  padding: 40px 32px;
+  background: linear-gradient(135deg, var(--bg-elev) 0%, var(--bg-deep) 100%);
+  border: 1px solid var(--hairline);
+  border-radius: 24px;
+  box-shadow: var(--shadow-card);
+  max-width: var(--content-max);
+  position: relative;
+  overflow: hidden;
+}
+.funnel-map-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.28em; color: var(--text-fade);
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.funnel-map h3 {
+  font-size: clamp(20px, 2.6vw, 26px); font-weight: 800;
+  letter-spacing: -0.022em; margin-bottom: 24px; line-height: 1.25;
+}
+.funnel-map .funnel-sub {
+  font-size: 12.5px; color: var(--text-soft); margin-bottom: 28px; line-height: 1.6;
+}
+.funnel-grid {
+  display: grid;
+  grid-template-columns: 1fr 16px 120px;
+  gap: 0;
+  position: relative;
+}
+.funnel-step {
+  grid-column: 1 / 2;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  position: relative;
+  border-left: 4px solid var(--step-color, var(--text-fade));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.funnel-step:hover { transform: translateX(2px); box-shadow: var(--shadow-soft); }
+.funnel-step .step-tag {
+  display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: 0.16em;
+  color: var(--step-color, var(--text-fade)); text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.funnel-step .step-title {
+  font-size: 14px; font-weight: 700; line-height: 1.4; color: var(--text);
+  margin-bottom: 2px;
+}
+.funnel-step .step-desc {
+  font-size: 11.5px; color: var(--text-soft); line-height: 1.5;
+}
+.funnel-step[data-color="why"]    { --step-color: var(--c-why); }
+.funnel-step[data-color="how"]    { --step-color: var(--c-how); }
+.funnel-step[data-color="proof"]  { --step-color: var(--c-proof); }
+.funnel-step[data-color="sales"]  { --step-color: var(--c-sales); }
+.funnel-step[data-color="text"]   { --step-color: var(--c-text-msg); }
+.funnel-step[data-color="meet"]   { --step-color: #0A0A0A; }
+.funnel-step[data-color="meet"]   { background: var(--text); color: var(--bg); border-color: var(--text); }
+.funnel-step[data-color="meet"] .step-title { color: var(--bg); }
+.funnel-step[data-color="meet"] .step-desc { color: rgba(255,255,255,0.7); }
+.funnel-step[data-color="meet"] .step-tag { color: rgba(255,255,255,0.8); }
+[data-theme="dark"] .funnel-step[data-color="meet"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+.funnel-arrow {
+  grid-column: 1 / 2;
+  height: 14px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.funnel-arrow::after {
+  content: ""; width: 2px; height: 14px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+  opacity: 0.5;
+}
+
+/* 早期申込ルートのバッジ */
+.funnel-early {
+  grid-column: 3 / 4;
+  align-self: center;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--accent); padding: 4px 8px;
+  border: 1px dashed var(--accent); border-radius: 100px;
+  white-space: nowrap; text-align: center; line-height: 1.3;
+  background: var(--bg);
+  margin: 4px 0 4px 8px;
+  position: relative;
+}
+.funnel-early::before {
+  content: ""; position: absolute; left: -16px; top: 50%;
+  width: 16px; height: 1px;
+  background: var(--accent); opacity: 0.5;
+  border-top: 1px dashed var(--accent);
+  background: transparent;
+}
+
+/* 早期ルート集約矢印（右側→Day 3.5 へ） */
+.funnel-early-bus {
+  grid-column: 3 / 4;
+  grid-row: 4 / 13;
+  position: relative;
+  pointer-events: none;
+}
+.funnel-early-bus::before {
+  content: ""; position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 1px; border-left: 1.5px dashed var(--c-sales); opacity: 0.55;
+}
+
+/* 凡例 */
+.funnel-legend {
+  margin-top: 28px; padding-top: 20px;
+  border-top: 1px dashed var(--hairline-strong);
+  display: flex; flex-wrap: wrap; gap: 10px 16px;
+  font-size: 11px; color: var(--text-soft);
+}
+.funnel-legend .lg { display: inline-flex; align-items: center; gap: 5px; }
+.funnel-legend .lg::before { content: ""; width: 9px; height: 9px; border-radius: 2px; background: var(--lg-color); }
+.funnel-legend .lg[data-c="why"] { --lg-color: var(--c-why); }
+.funnel-legend .lg[data-c="how"] { --lg-color: var(--c-how); }
+.funnel-legend .lg[data-c="proof"] { --lg-color: var(--c-proof); }
+.funnel-legend .lg[data-c="sales"] { --lg-color: var(--c-sales); }
+.funnel-legend .lg[data-c="text"] { --lg-color: var(--c-text-msg); }
+.funnel-legend .lg[data-c="dashed"] { --lg-color: transparent; }
+.funnel-legend .lg[data-c="dashed"]::before { background: transparent; border: 1px dashed var(--c-sales); }
+
+@media (max-width: 767px) {
+  .funnel-map { margin: 16px -4px 64px; padding: 24px 16px; border-radius: 18px; }
+  .funnel-grid { grid-template-columns: 1fr; }
+  .funnel-step { padding: 12px 14px; }
+  .funnel-step .step-title { font-size: 13px; }
+  .funnel-step .step-desc { font-size: 11px; }
+  .funnel-early {
+    grid-column: 1 / 2;
+    justify-self: end;
+    margin: -6px 12px 4px 0;
+    font-size: 9.5px;
+  }
+  .funnel-early::before { display: none; }
+  .funnel-early-bus { display: none; }
+}
+
+.site-footer {
+  margin-top: 128px; padding: 48px 0 24px;
+  border-top: 1px solid var(--hairline);
+  text-align: center; font-size: 12px; font-weight: 500; color: var(--text-fade);
+  letter-spacing: 0.05em;
+}
+
+/* =============================================
+   レスポンシブ：3つのブレイクポイント
+   - mobile     : <= 767px (iPhone等)
+   - tablet     : 768-1199px (iPad等)
+   - desktop    : >= 1200px (Mac Chrome等)
+   ============================================= */
+
+.mobile-nav { display: none; }
+.toc-rail { display: block; } /* デスクトップで表示 */
+
+/* === タブレット(768px-1199px): 2カラム・右TOC非表示・サイドバー幅縮小 === */
+@media (max-width: 1199px) {
+  .layout { grid-template-columns: 260px minmax(0, 1fr); max-width: 1100px; }
+  .toc-rail { display: none; }
+  .main { padding: 56px 40px 100px; }
+  .sidebar { padding: 32px 20px; }
+  .day-header { margin: 0 -40px 48px; padding: 56px 40px 48px; }
+  .hero h1 { font-size: clamp(30px, 5vw, 46px); }
+  .day-header h2 { font-size: clamp(24px, 4vw, 32px); }
+}
+
+/* === モバイル(<=767px): 1カラム・底面コントロールバー・iPhone最適化 === */
+@media (max-width: 767px) {
+  .layout { grid-template-columns: 1fr; max-width: 100vw; }
+  .sidebar, .toc-rail { display: none; }
+
+  /* スマホは右上controlsを非表示にして、下部bottom barで操作 */
+  .controls { display: none; }
+
+  /* iPhone safe area対応 */
+  body { padding-bottom: env(safe-area-inset-bottom, 0); }
+
+  .main {
+    padding: 0 16px calc(120px + env(safe-area-inset-bottom, 0));
+    padding-top: 4px;
+    min-width: 0;
+  }
+
+  /* スティッキー上部ミニナビ */
+  .mobile-nav {
+    display: block; position: sticky; top: 0; z-index: 50;
+    background: rgba(250, 250, 246, 0.85);
+    border-bottom: 1px solid var(--hairline);
+    padding: 12px 16px;
+    padding-top: calc(12px + env(safe-area-inset-top, 0));
+    margin: 0 -16px 24px;
+    backdrop-filter: saturate(160%) blur(20px);
+    -webkit-backdrop-filter: saturate(160%) blur(20px);
+  }
+  [data-theme="dark"] .mobile-nav { background: rgba(14, 14, 16, 0.82); }
+  .mobile-current { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mobile-current-info { font-size: 12px; font-weight: 700; line-height: 1.4; color: var(--accent); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.5s ease; }
+  .mobile-current-chapter { font-size: 10px; font-weight: 500; color: var(--text-fade); margin-top: 3px; letter-spacing: 0.04em; }
+  .mobile-menu-btn {
+    flex-shrink: 0; background: var(--accent); color: var(--bg); border: none;
+    padding: 10px 16px; border-radius: 100px; font-size: 12px; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.05em;
+    min-height: 44px; min-width: 44px;
+    transition: transform 0.15s ease, background 0.5s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-menu-btn:active { transform: scale(0.96); }
+
+  /* モバイル目次: 底面シート風 */
+  .mobile-menu-drawer { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; backdrop-filter: blur(8px); }
+  .mobile-menu-drawer.open { display: block; }
+  .mobile-menu-inner {
+    background: var(--bg); position: absolute; left: 0; right: 0; bottom: 0; top: 10vh;
+    overflow-y: auto; padding: 24px 20px calc(40px + env(safe-area-inset-bottom, 0));
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .mobile-menu-inner::before {
+    content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 40px; height: 4px; background: var(--hairline-strong); border-radius: 2px;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .mobile-menu-close {
+    background: transparent; border: 1px solid var(--hairline-strong);
+    padding: 10px 16px; font-size: 12px; font-weight: 700; border-radius: 100px;
+    margin: 16px 0 24px; cursor: pointer; color: var(--text);
+    min-height: 44px;
+  }
+
+  /* iPhone底面コントロールバー */
+  .mobile-bottombar {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(250, 250, 246, 0.92);
+    border-top: 1px solid var(--hairline);
+    padding: 10px 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0));
+    gap: 8px; z-index: 99;
+    backdrop-filter: saturate(160%) blur(20px);
+    -webkit-backdrop-filter: saturate(160%) blur(20px);
+    justify-content: space-around;
+  }
+  [data-theme="dark"] .mobile-bottombar { background: rgba(14, 14, 16, 0.88); }
+  .mobile-bb-btn {
+    flex: 1; max-width: 80px; min-height: 44px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; background: transparent; border: none; color: var(--text-soft);
+    cursor: pointer; font-size: 10px; font-weight: 700; letter-spacing: 0.05em;
+    border-radius: 10px; padding: 6px;
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-bb-btn:active { background: var(--accent-soft); color: var(--accent); transform: scale(0.96); }
+  .mobile-bb-btn .icon { font-size: 17px; line-height: 1; }
+  .mobile-bb-btn .label { font-size: 9.5px; opacity: 0.9; }
+
+  /* ヒーロー */
+  .hero { margin-bottom: 48px; padding: 12px 0 28px; }
+  .hero h1 { font-size: 28px; line-height: 1.18; letter-spacing: -0.03em; }
+  .hero .lead { font-size: 14.5px; }
+  .hero .eyebrow { font-size: 10px; }
+  .hero .eyebrow::before { width: 24px; }
+
+  /* Day Header */
+  .day-header {
+    margin: 0 -16px 40px; padding: 40px 20px 36px;
+    border-radius: 0;
+  }
+  .day-header::after { right: 14px; font-size: clamp(70px, 28vw, 140px); bottom: -4px; }
+  .day-header h2 { font-size: 22px; line-height: 1.25; }
+  .day-header .day-label { font-size: 10px; padding: 5px 12px; margin-bottom: 18px; }
+  .day-header .day-role { font-size: 13.5px; }
+  .day-header .day-meta { font-size: 11.5px; }
+
+  /* 章 */
+  section.chapter { margin-top: 48px; }
+  .chapter-head { flex-wrap: wrap; gap: 10px; padding-bottom: 14px; align-items: center; }
+  .chapter-head h3 { font-size: 18px; line-height: 1.3; }
+
+  /* 本文 */
+  body { font-size: 15px; line-height: 1.85; }
+  p { font-size: 15px; line-height: 1.85; margin-bottom: 14px; }
+  .lead { font-size: 14.5px; }
+  .narration { font-size: 14px; padding: 18px 20px; border-radius: 14px; }
+  .narration p { font-size: 14px; }
+  .msg-quote { font-size: 14px; padding: 18px 20px; }
+  .callout { padding: 16px 20px; }
+  .callout p { font-size: 14.5px; }
+  .signature { padding: 22px 20px; border-radius: 16px; }
+  .signature .quote { font-size: 17px; line-height: 1.45; }
+  .case-card, .judgment-axis, .afsheen-fb, .msg-card { padding: 18px 20px; border-radius: 12px; }
+  .case-card:hover, .judgment-axis:hover, .afsheen-fb:hover { transform: none; box-shadow: var(--shadow-soft); border-color: var(--hairline); }
+  .case-card .case-title, .judgment-axis .title, .afsheen-fb .title { font-size: 15px; }
+  .summary-list, .cta-block { padding: 18px 20px; border-radius: 12px; }
+  .cta-block.final { border-radius: 14px; padding: 22px 20px; }
+  ul.bullet li, .summary-list li { font-size: 14px; line-height: 1.75; }
+  .situation { font-size: 13.5px; padding-left: 40px; }
+  .meta-box { padding: 18px 20px; border-radius: 14px; }
+  .meta-box dl { grid-template-columns: 1fr; font-size: 13px; row-gap: 8px; }
+  .meta-box dt { margin-top: 12px; }
+  .meta-box dt:first-child { margin-top: 0; }
+  h4 { font-size: 15px; }
+  .day-divider { margin: 56px 0; }
+
+  /* 章末ナビ: モバイルでも横並びだが小さく */
+  .chapter-nav { gap: 8px; }
+  .chapter-nav-btn { padding: 12px 14px; min-height: 44px; }
+  .chapter-nav-title { font-size: 12px; }
+  .chapter-nav-label { font-size: 9.5px; }
+
+  /* 入力フォーカス時のzoom防止 */
+  input, textarea, select { font-size: 16px; }
+
+  /* タップハイライト */
+  a, button { -webkit-tap-highlight-color: transparent; }
+}
+
+/* デスクトップでは底面バー隠す */
+.mobile-bottombar { display: none; }
+
+/* === 超ワイド(>=1600px): カラム幅をさらに広げる === */
+@media (min-width: 1600px) {
+  .layout { grid-template-columns: 320px minmax(0, 1fr) 280px; max-width: 1760px; }
+  .main { padding: 96px 80px 140px; }
+  :root { --content-max: 780px; }
+}
+
+/* =============================================
+   LINE風UI（テキスト配信3本のみに適用）
+   - 公式LINEからの受信メッセージとして直感的に分かる体裁
+   - LINE Green #06C755 / トーク壁紙 #7B9BC0
+   ============================================= */
+:root {
+  --line-green: #06C755;
+  --line-green-deep: #04A848;
+  --line-talk-bg: #7C9BBA;
+  --line-talk-bg-light: #8FAECA;
+  --line-bubble-bg: #FFFFFF;
+  --line-bubble-text: #0A0A0A;
+}
+[data-theme="dark"] {
+  --line-talk-bg: #2A3A48;
+  --line-talk-bg-light: #354858;
+  --line-bubble-bg: #FAFAF6;
+  --line-bubble-text: #0A0A0A;
+}
+
+/* テキスト配信セクション全体をLINEトーク画面化 */
+section.day[data-day="welcome"],
+section.day[data-day="voice"],
+section.day[data-day="closing"] {
+  background: linear-gradient(180deg, var(--line-talk-bg) 0%, var(--line-talk-bg-light) 100%);
+  border-radius: 24px;
+  overflow: hidden;
+  margin: 0 0 96px;
+  padding: 0;
+  box-shadow: var(--shadow-card);
+  position: relative;
+}
+
+/* LINEヘッダー風（公式アカウントヘッダー） */
+section.day[data-day="welcome"] .day-header.text-msg,
+section.day[data-day="voice"] .day-header.text-msg,
+section.day[data-day="closing"] .day-header.text-msg {
+  background: var(--line-green);
+  margin: 0;
+  padding: 22px 24px 18px;
+  border-radius: 24px 24px 0 0;
+  border: none;
+  position: relative;
+}
+section.day[data-day="welcome"] .day-header.text-msg::before,
+section.day[data-day="voice"] .day-header.text-msg::before,
+section.day[data-day="closing"] .day-header.text-msg::before {
+  content: "● LINE 公式アカウント";
+  display: block;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.85); margin-bottom: 14px;
+  text-transform: uppercase;
+}
+section.day[data-day="welcome"] .day-header.text-msg::after,
+section.day[data-day="voice"] .day-header.text-msg::after,
+section.day[data-day="closing"] .day-header.text-msg::after {
+  content: "GINPEI";
+  position: absolute; top: 50px; right: 24px;
+  width: 44px; height: 44px;
+  background: var(--line-bubble-bg); color: var(--line-green);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.05em;
+  border: 2px solid rgba(255,255,255,0.5);
+}
+section.day[data-day="welcome"] .day-header h2,
+section.day[data-day="voice"] .day-header h2,
+section.day[data-day="closing"] .day-header h2 {
+  color: white; font-size: 17px !important; line-height: 1.4; margin-bottom: 6px;
+  letter-spacing: -0.01em; padding-right: 56px;
+}
+section.day[data-day="welcome"] .day-header .day-label,
+section.day[data-day="voice"] .day-header .day-label,
+section.day[data-day="closing"] .day-header .day-label {
+  background: rgba(255,255,255,0.22);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  margin-bottom: 14px;
+}
+section.day[data-day="welcome"] .day-header .day-kind,
+section.day[data-day="voice"] .day-header .day-kind,
+section.day[data-day="closing"] .day-header .day-kind { color: rgba(255,255,255,0.8); }
+section.day[data-day="welcome"] .day-header .day-role,
+section.day[data-day="voice"] .day-header .day-role,
+section.day[data-day="closing"] .day-header .day-role { color: rgba(255,255,255,0.92); font-size: 12.5px; padding-right: 56px; }
+section.day[data-day="welcome"] .day-header .day-meta,
+section.day[data-day="voice"] .day-header .day-meta,
+section.day[data-day="closing"] .day-header .day-meta { color: rgba(255,255,255,0.85); font-size: 11.5px; }
+section.day[data-day="welcome"] .day-header .day-meta b,
+section.day[data-day="voice"] .day-header .day-meta b,
+section.day[data-day="closing"] .day-header .day-meta b { color: white; }
+section.day[data-day="welcome"] .day-header::after { content: ""; display: none; }
+section.day[data-day="voice"] .day-header::after { content: ""; display: none; }
+section.day[data-day="closing"] .day-header::after { content: ""; display: none; }
+
+/* 注釈box(達朗さんへ): LINEトーク内では浮かせ気味 */
+section.day[data-day="welcome"] > .notes-box,
+section.day[data-day="voice"] > .notes-box,
+section.day[data-day="closing"] > .notes-box {
+  margin: 18px 18px 0; background: #FFF5E5; color: #5C3A00;
+  border: 1px solid #E0A040; border-style: solid;
+}
+section.day[data-day="welcome"] > .notes-box strong,
+section.day[data-day="voice"] > .notes-box strong,
+section.day[data-day="closing"] > .notes-box strong { background: none; color: #8B5500; }
+
+/* メッセージカード（送信者名みたいに使う） */
+section.day[data-day="welcome"] .msg-card,
+section.day[data-day="voice"] .msg-card,
+section.day[data-day="closing"] .msg-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 24px 20px 32px;
+  max-width: none;
+  margin: 0;
+}
+section.day[data-day="welcome"] .msg-card .msg-label,
+section.day[data-day="voice"] .msg-card .msg-label,
+section.day[data-day="closing"] .msg-card .msg-label {
+  color: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.18);
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 100px;
+  margin-bottom: 18px;
+  font-size: 9.5px;
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.15em;
+}
+
+/* LINE風メッセージ吹き出し（自分=GINPEI公式アカウントが送信する側＝右寄せ緑バブル・白文字） */
+section.day[data-day="welcome"] .msg-quote,
+section.day[data-day="voice"] .msg-quote,
+section.day[data-day="closing"] .msg-quote {
+  background: var(--line-green);
+  color: #FFFFFF;
+  border-left: none;
+  border-radius: 18px 4px 18px 18px;
+  padding: 18px 20px;
+  margin: 0 0 0 40px;
+  max-width: none;
+  font-size: 14.5px;
+  line-height: 1.75;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+section.day[data-day="welcome"] .msg-quote::before,
+section.day[data-day="voice"] .msg-quote::before,
+section.day[data-day="closing"] .msg-quote::before {
+  content: "";
+  position: absolute;
+  right: -7px; top: 0;
+  width: 0; height: 0;
+  border-top: 0 solid transparent;
+  border-left: 11px solid var(--line-green);
+  border-bottom: 12px solid transparent;
+}
+section.day[data-day="welcome"] .msg-quote p,
+section.day[data-day="voice"] .msg-quote p,
+section.day[data-day="closing"] .msg-quote p {
+  color: #FFFFFF;
+  font-size: 14.5px;
+  line-height: 1.75;
+  margin-bottom: 12px;
+  max-width: none;
+}
+section.day[data-day="welcome"] .msg-quote p:last-child,
+section.day[data-day="voice"] .msg-quote p:last-child,
+section.day[data-day="closing"] .msg-quote p:last-child { margin-bottom: 0; }
+section.day[data-day="welcome"] .msg-quote strong,
+section.day[data-day="voice"] .msg-quote strong,
+section.day[data-day="closing"] .msg-quote strong {
+  color: #FFFFFF;
+  font-weight: 700;
+  background: none;
+  background-image: none;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.55);
+  text-underline-offset: 3px;
+}
+/* 既読/時刻のような小要素風（msg-quote直後にタイムスタンプ表示） */
+section.day[data-day="welcome"] .msg-quote::after,
+section.day[data-day="voice"] .msg-quote::after,
+section.day[data-day="closing"] .msg-quote::after {
+  content: "既読 ・ GINPEI公式";
+  position: absolute;
+  right: 8px; bottom: -18px;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.85);
+}
+
+/* 配信ルールの notes-box: LINE壁紙の上では半透明白板 */
+section.day[data-day="welcome"] > .notes-box:last-child,
+section.day[data-day="voice"] > .notes-box:last-child,
+section.day[data-day="closing"] > .notes-box:last-child {
+  margin: 0 18px 24px;
+  background: rgba(255,255,255,0.92);
+  color: #4A4A45;
+  border: none;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+section.day[data-day="welcome"] > .notes-box:last-child strong,
+section.day[data-day="voice"] > .notes-box:last-child strong,
+section.day[data-day="closing"] > .notes-box:last-child strong { color: var(--line-green-deep); background: none; }
+
+/* おさる原典フォーマット注釈 p（welcome用）はトーク壁紙に直接配置 */
+section.day[data-day="welcome"] > p,
+section.day[data-day="voice"] > p,
+section.day[data-day="closing"] > p {
+  color: rgba(255,255,255,0.95);
+  font-size: 12.5px;
+  margin: 18px 20px 0;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  max-width: none;
+}
+section.day[data-day="welcome"] > p strong,
+section.day[data-day="voice"] > p strong,
+section.day[data-day="closing"] > p strong { color: white; background: none; }
+
+/* セクション末尾に「LINE風タイムスタンプ」風の余白 */
+section.day[data-day="welcome"]::after,
+section.day[data-day="voice"]::after,
+section.day[data-day="closing"]::after {
+  content: "📱 LINE公式アカウント配信";
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.75);
+  padding: 16px 0 22px;
+  text-transform: uppercase;
+}
+
+/* モバイル調整 */
+@media (max-width: 767px) {
+  section.day[data-day="welcome"],
+  section.day[data-day="voice"],
+  section.day[data-day="closing"] {
+    margin: 0 -16px 56px;
+    border-radius: 0;
+  }
+  section.day[data-day="welcome"] .day-header.text-msg,
+  section.day[data-day="voice"] .day-header.text-msg,
+  section.day[data-day="closing"] .day-header.text-msg {
+    border-radius: 0;
+    padding: 18px 16px 14px;
+  }
+  section.day[data-day="welcome"] .day-header.text-msg::after,
+  section.day[data-day="voice"] .day-header.text-msg::after,
+  section.day[data-day="closing"] .day-header.text-msg::after {
+    top: 44px; right: 14px; width: 38px; height: 38px;
+  }
+  section.day[data-day="welcome"] .msg-card,
+  section.day[data-day="voice"] .msg-card,
+  section.day[data-day="closing"] .msg-card { padding: 18px 14px 24px; }
+  section.day[data-day="welcome"] .msg-quote,
+  section.day[data-day="voice"] .msg-quote,
+  section.day[data-day="closing"] .msg-quote { margin-right: 36px; }
+  section.day[data-day="welcome"] > .notes-box,
+  section.day[data-day="voice"] > .notes-box,
+  section.day[data-day="closing"] > .notes-box { margin-left: 14px; margin-right: 14px; }
+  section.day[data-day="welcome"] > p,
+  section.day[data-day="voice"] > p,
+  section.day[data-day="closing"] > p { margin-left: 14px; margin-right: 14px; }
+}
+
+/* ===== モーション(JS-only opt-in: htmlに .scroll-reveal が付いた時だけ発動) ===== */
+html.scroll-reveal section.day,
+html.scroll-reveal section.chapter {
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.scroll-reveal section.day.in-view,
+html.scroll-reveal section.chapter.in-view {
+  opacity: 1; transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- スクロール進捗バー -->
+<div class="scroll-progress" aria-hidden="true">
+  <div class="scroll-progress-bar" id="scroll-progress-bar"></div>
+</div>
+
+<!-- フローティングコントロール(テーマ・フォント・ショートカット) -->
+<div class="controls" role="toolbar" aria-label="リーディング設定">
+  <button class="ctrl-btn" id="ctrl-font-down" aria-label="文字を小さく" type="button">A−</button>
+  <button class="ctrl-btn" id="ctrl-font-up" aria-label="文字を大きく" type="button">A+</button>
+  <button class="ctrl-btn" id="ctrl-theme" aria-label="ダーク/ライト切替" type="button">◐</button>
+</div>
+
+<!-- スマホ用ヘッダー -->
+<div class="mobile-nav">
+  <div class="mobile-current">
+    <div>
+      <div class="mobile-current-info" id="mobile-current-info">読み込み中</div>
+      <div class="mobile-current-chapter" id="mobile-current-chapter"></div>
+    </div>
+    <button class="mobile-menu-btn" onclick="document.getElementById('mobile-drawer').classList.add('open')">≡ 目次</button>
+  </div>
+</div>
+
+<div class="mobile-menu-drawer" id="mobile-drawer" onclick="if(event.target===this) this.classList.remove('open')">
+  <div class="mobile-menu-inner">
+    <button class="mobile-menu-close" onclick="document.getElementById('mobile-drawer').classList.remove('open')">✕ 閉じる</button>
+    <div id="mobile-nav-list"></div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- サイドバー(デスクトップ用) -->
+<aside class="sidebar">
+  <div class="sidebar-brand" id="sidebar-brand">COLLECTIVE LINEファネル v4</div>
+  <div class="sidebar-title">LINE限定 教育ファネル</div>
+
+  <div class="sidebar-current" id="sidebar-current">
+    <div class="sidebar-current-label" id="sidebar-current-label">現在地</div>
+    <div class="sidebar-current-day" id="sidebar-current-day">読み込み中</div>
+    <div class="sidebar-current-title" id="sidebar-current-title">—</div>
+    <div class="sidebar-current-chapter" id="sidebar-current-chapter" style="display:none"></div>
+  </div>
+
+  <div class="sidebar-nav-title">📋 全7コンテンツ</div>
+  <ul class="sidebar-nav" id="sidebar-nav">
+    <li data-section-day="welcome"><a href="#day1-welcome" data-target="day1-welcome"><span class="day-tag">D1</span><span class="label">📨 挨拶テキスト</span></a></li>
+    <li data-section-day="why"><a href="#day1-why" data-target="day1-why"><span class="day-tag">D1</span><span class="label">🎬 Why動画</span></a></li>
+    <li data-section-day="how"><a href="#day2-how" data-target="day2-how"><span class="day-tag">D2</span><span class="label">🎬 How動画</span></a></li>
+    <li data-section-day="proof"><a href="#day3-proof" data-target="day3-proof"><span class="day-tag">D3</span><span class="label">🎬 Proof動画</span></a></li>
+    <li data-section-day="sales"><a href="#day35-sales" data-target="day35-sales"><span class="day-tag">D3.5</span><span class="label">💰 詳細動画</span></a></li>
+    <li data-section-day="voice"><a href="#day4-voice" data-target="day4-voice"><span class="day-tag">D4</span><span class="label">📨 声テキスト</span></a></li>
+    <li data-section-day="closing"><a href="#day5-closing" data-target="day5-closing"><span class="day-tag">D5</span><span class="label">📨 締切テキスト</span></a></li>
+  </ul>
+
+  <div class="sidebar-nav-title" style="margin-top: 28px;">🎨 テーマカラー</div>
+  <div style="font-size: 12px; line-height: 2; padding: 0 10px;">
+    <div><span style="display:inline-block;width:10px;height:10px;background:var(--c-why);border-radius:2px;vertical-align:middle;margin-right:6px;"></span>Why動画(Day 1)</div>
+    <div><span style="display:inline-block;width:10px;height:10px;background:var(--c-how);border-radius:2px;vertical-align:middle;margin-right:6px;"></span>How動画(Day 2)</div>
+    <div><span style="display:inline-block;width:10px;height:10px;background:var(--c-proof);border-radius:2px;vertical-align:middle;margin-right:6px;"></span>Proof動画(Day 3)</div>
+    <div><span style="display:inline-block;width:10px;height:10px;background:var(--c-sales);border-radius:2px;vertical-align:middle;margin-right:6px;"></span>COLLECTIVE 詳細動画(Day 3.5)</div>
+    <div><span style="display:inline-block;width:10px;height:10px;background:var(--c-text-msg);border-radius:2px;vertical-align:middle;margin-right:6px;"></span>テキスト配信</div>
+  </div>
+</aside>
+
+<!-- メインコンテンツ -->
+<main class="main">
+
+<header class="hero" id="hero">
+  <div class="eyebrow">COLLECTIVE LINEファネル v4</div>
+  <h1>LINE限定 教育ファネル 全7コンテンツ</h1>
+</header>
+
+<!-- ===== ファネル全体像（1枚図） ===== -->
+<section class="funnel-map" aria-label="ファネル全体像">
+  <div class="funnel-map-label">FUNNEL MAP</div>
+  <h3>全体像</h3>
+
+  <div class="funnel-grid">
+    <!-- Step 0 -->
+    <div class="funnel-step" data-color="text" style="--step-color: #888;">
+      <div class="step-tag">Start</div>
+      <div class="step-title">LINE 登録</div>
+    </div>
+    <div class="funnel-arrow"></div>
+
+    <!-- Day 1 -->
+    <div class="funnel-step" data-color="why">
+      <div class="step-tag">Day 1 ／ 挨拶 + Why動画</div>
+      <div class="step-title">9割の音楽制作者が陥る本質的勘違い</div>
+    </div>
+    <div class="funnel-early">早期申込<br>OK</div>
+    <div class="funnel-arrow"></div>
+
+    <!-- Day 2 -->
+    <div class="funnel-step" data-color="how">
+      <div class="step-tag">Day 2 ／ How動画</div>
+      <div class="step-title">GINPEI式 3 判断軸メソッド</div>
+    </div>
+    <div class="funnel-early">早期申込<br>OK</div>
+    <div class="funnel-arrow"></div>
+
+    <!-- Day 3 -->
+    <div class="funnel-step" data-color="proof">
+      <div class="step-tag">Day 3 ／ Proof動画</div>
+      <div class="step-title">受講生 8 事例 + 自分にも起こりうる未来</div>
+    </div>
+    <div class="funnel-early">早期申込<br>OK</div>
+    <div class="funnel-arrow"></div>
+
+    <!-- Day 3.5(早期ルートはここに必ず集約) -->
+    <div class="funnel-step" data-color="sales">
+      <div class="step-tag">Day 3.5 ／ COLLECTIVE 詳細動画(必修)</div>
+      <div class="step-title">料金・コンテンツ・お断りスタンス</div>
+    </div>
+    <div class="funnel-arrow"></div>
+
+    <!-- Day 4 -->
+    <div class="funnel-step" data-color="text">
+      <div class="step-tag">Day 4 ／ 声テキスト</div>
+      <div class="step-title">個別相談を受けた方々の声</div>
+    </div>
+    <div class="funnel-arrow"></div>
+
+    <!-- Day 5 -->
+    <div class="funnel-step" data-color="text">
+      <div class="step-tag">Day 5 ／ 締切テキスト</div>
+      <div class="step-title">個別相談 申込締切リマインド</div>
+    </div>
+    <div class="funnel-arrow"></div>
+
+    <!-- 個別相談 -->
+    <div class="funnel-step" data-color="meet">
+      <div class="step-tag">個別相談</div>
+      <div class="step-title">Zoom 15〜20分</div>
+    </div>
+    <div class="funnel-arrow"></div>
+
+    <!-- 成約 -->
+    <div class="funnel-step" data-color="proof" style="background: linear-gradient(135deg, var(--c-proof-soft) 0%, var(--bg) 100%); text-align: center;">
+      <div class="step-tag">GOAL</div>
+      <div class="step-title">成約</div>
+    </div>
+  </div>
+
+  <div class="funnel-legend">
+    <span class="lg" data-c="why">Why動画(Day 1)</span>
+    <span class="lg" data-c="how">How動画(Day 2)</span>
+    <span class="lg" data-c="proof">Proof動画(Day 3)</span>
+    <span class="lg" data-c="sales">詳細動画(Day 3.5)</span>
+    <span class="lg" data-c="text">テキスト配信</span>
+    <span class="lg" data-c="dashed">早期申込ルート</span>
+  </div>
+</section>
+
+<!-- ====== Day 1 挨拶テキスト ====== -->
+<section class="day" id="day1-welcome" data-day="welcome" data-title="Day 1 挨拶テキスト">
+  <div class="day-header text-msg" data-bignum="01">
+    <span class="day-label">Day 1 ／ ① 挨拶テキスト</span>
+    <div class="day-kind">📨 LINEテキスト ＋ 特典PDF ＋ Why動画リンク</div>
+    <h2>Day 1 挨拶テキスト</h2>
+    <div class="day-role">登録直後・最初の接触メッセージ。本シリーズの案内と特典PDF・Why動画リンクを同梱。</div>
+    <div class="day-meta">配信タイミング: <b>登録直後(即時 or 15分後)</b> ／ 配信担当: <b>達朗さん実装</b></div>
+  </div>
+
+  <div class="msg-card">
+    <div class="msg-label">第1メッセージ: 挨拶 ＋ 特典 ＋ Why動画</div>
+    <div class="msg-quote">
+      <p>LINE登録ありがとうございます、GINPEIです。</p>
+      <p>本気で音楽制作を変えたい方のための、<strong>LINE限定3回シリーズ</strong>を、本日から配信します。</p>
+      <p>▼ 登録特典<br>📄 [特典PDFリンク]</p>
+      <p>▼ 第1回(今日)<br>🎥 [Why動画リンク]</p>
+      <p>第2回・第3回は、明日以降に自動で届きます。</p>
+    </div>
+  </div>
+
+  <div class="notes-box">
+    <strong>配信ルール</strong>
+    <ul>
+      <li>長文禁止(動画リンクへのタップ最優先)</li>
+      <li>動画リンクへのタップを最優先</li>
+      <li>特典PDFは別添(動画と並列で配置)</li>
+      <li>全シリーズ予告で「明日が楽しみ」感を作る</li>
+    </ul>
+  </div>
+</section>
+
+<div class="day-divider"></div>
+
+<!-- ====== Day 1 Why動画 ====== -->
+<section class="day" id="day1-why" data-day="why" data-title="Day 1 Why動画">
+  <div class="day-header" data-bignum="02">
+    <span class="day-label">Day 1 ／ ② Why動画</span>
+    <div class="day-kind">🎬 動画 ／ 約18-22分(中尺)</div>
+    <h2>結果を真似しても、音が変わらない理由 ／ 9割の音楽制作者が陥る本質的な勘違い</h2>
+    <div class="day-role">問題提起 ＋ 痛みの深化 ＋ シリーズ全体の導入</div>
+    <div class="day-meta">配信: <b>Day 1(登録直後)</b> ／ シリーズ第1回 ／ <b>LINE登録者限定</b></div>
+  </div>
+
+  <section class="chapter" data-chapter="CH 01 ナレ導入">
+    <div class="chapter-head"><span class="chapter-num">CH 01</span><h3>ナレ導入</h3><span class="duration">15秒</span></div>
+    <div class="narration"><p>これは、海外基準のダンスミュージック制作を、最短ルートで身につけたい方のための、<strong>LINE登録者限定の3回シリーズ動画</strong>です。今回はその第1回・Why動画。<strong>独学で曲が完成しない9割の音楽制作者が陥っている、本質的な勘違い</strong>について。</p></div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 02 挨拶＋シリーズ予告">
+    <div class="chapter-head"><span class="chapter-num">CH 02</span><h3>挨拶 ＋ 全3回シリーズ予告 ＋ 着席維持</h3><span class="duration">約30-45秒</span></div>
+    <p>こんにちは、GINPEIです。LINE登録、ありがとうございます。この動画は、<strong>登録者限定の3回シリーズ</strong>の第1回です。</p>
+    <p>第1回は、<strong>問題提起の回</strong>。独学で曲が完成しない方の9割が陥っている『本質的な勘違い』を扱います。ここを理解すれば、見え方が一気に変わります。</p>
+    <div class="callout">
+      <p><strong>ボカロ、J-Pop、ロック、アニメ音楽 — どんなジャンルでも、本気で音楽を作っている方にとって、必ず通じる話です</strong>。その理由も、今日お話しします。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 03 フロアが止まった瞬間">
+    <div class="chapter-head"><span class="chapter-num">CH 03</span><h3>フロアが止まった瞬間 — 圧縮版</h3><span class="duration">約1.5分</span></div>
+    <p>まず、今から話す僕の体験から、始めさせてください。</p>
+    <p>東京のクラブでDJをしていた頃の話です。</p>
+    <p>夜中の1時40分、自分のセットの中で、<strong>自作曲を流すことにしました</strong>。</p>
+    <p>ミックスし始めた瞬間に、気づきました。<strong>音が、明らかに薄い</strong>。クラブの大きなスピーカーから流れると、前後の曲との差が、はっきり出ます。低音は曇って、胸に響かない。</p>
+    <p>さっきまで曲に合わせて飛び跳ねていた人たちの動きが、<strong>一気に止まりました</strong>。お酒を飲み始めたり、他のフロアに移動していくのが、ステージから見えました。</p>
+    <p>自分の曲を、自分で流したのに、<strong>早く次に切り替えたくなった</strong>。</p>
+    <div class="callout">
+      <p>その日から、僕の中で1つだけ、決まったことがありました。</p>
+      <p><strong>何としてでも、同じ土俵に、自分の曲を持っていきたい</strong>。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 04 4シチュエーション共感">
+    <div class="chapter-head"><span class="chapter-num">CH 04</span><h3>4シチュエーション共感</h3><span class="duration">約1分</span></div>
+    <p>こういう瞬間に、心当たりがある人もいるかもしれません。</p>
+    <div class="situation">8小節のループだけは作れる。でも、そこから先が、何ヶ月経っても進まない。</div>
+    <div class="situation">YouTubeのチュートリアルを2年やったのに、いまだに自分の曲が、完成しない。</div>
+    <div class="situation">機材もプラグインも揃えた。でも、なぜか海外プロの音と、何かが違う。</div>
+    <div class="situation">自分の曲をSNSに上げようとして、最後の一歩で「これじゃダメだ」と止めてしまう。</div>
+    <p>1つでも当てはまったなら、<strong>このシリーズはそういう方に向けて作りました</strong>。『何かが届かない』壁をどう越えたか、何が必要かを、3回で話します。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 05 今日のテーマ">
+    <div class="chapter-head"><span class="chapter-num">CH 05</span><h3>今日のテーマ — 独学では構造的に到達できない</h3><span class="duration">約1分</span></div>
+    <p>最初に、はっきり言います。</p>
+    <div class="callout"><p><strong>海外基準のダンスミュージック制作を、独学だけで身につけるのは、構造的に不可能に近い</strong>。</p></div>
+    <p>努力や才能の問題ではなく、<strong>やり方そのものに構造的な問題がある</strong>。ここから、その構造を5つの角度でお話しします。</p>
+
+    <p>これは <strong>業界の構造的な問題</strong> でもあります。プラグインメーカーは「これを買えば音が変わる」と言い、YouTube は「これさえ覚えれば」型の動画ばかり。<strong>断片情報を売り続けることが、業界全体のビジネスモデルになっている</strong>。独学で正しい順序に辿り着くのは、構造的に難しい。</p>
+
+    <p>加えて日本では、<strong>ダンスミュージック軸・海外基準で体系化されたサービスが圧倒的に少ない</strong>。独学に頼らざるを得ない、もう一つの構造的要因です。</p>
+
+    <p>僕自身も発信者として向き合ってきました。YouTubeでも <strong>章立てて、制作の最初からマスタリングまでを順番に伝える動画</strong> を作ってきました。それでも、<strong>動画単発・YouTubeという形式単体では、3つの判断軸を順序通りに身につけてもらうには、構造的に限界がある</strong>。だからスクールという形に踏み込みました。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 06 チャンス論">
+    <div class="chapter-head"><span class="chapter-num">CH 06</span><h3>チャンス論 — ダンスミュージックを学ぶ意味</h3><span class="duration">約2分</span></div>
+    <p>「EDMはもう飽和、今から学んでも遅い」— これは大きな勘違いです。</p>
+    <h4>ダンスミュージックの技術は、ジャンルを超えて流れ込んでいる</h4>
+    <p>多くの人は『ダンスミュージック』をEDMという特定ジャンルとして捉えがちです。でも、ダンスミュージック制作で扱われる<strong>要素・考え方・構造</strong>は、ジャンルの境界を超えて、いまの音楽全般に流れ込んでいます。</p>
+    <p><strong>エレクトロニックなビート、シンセサイザーのレイヤー、4つ打ちのキック、サイドチェインの処理、低音の設計</strong>。完全なアコースティック楽曲やシンプルなバラードでない限り、これらのアプローチを <strong>1つも扱わないケースの方が、むしろ少ない</strong>。アニメOP、CM音楽、ボカロ、ロック、J-POP — どのジャンルにも、ダンスミュージック由来の技術が当たり前に紛れ込んでいます。</p>
+    <div class="callout">
+      <p><strong>これらを「方法論」として表面的に知っただけでは、構造的には理解できません</strong>。なぜそのプロセスが必要か、なぜその順序か。文化と潮流を掴まないまま真似しても、<strong>見よう見まねの偽物にしかなりません</strong>。</p>
+    </div>
+    <p>逆に、判断軸を文化と潮流ごと持っている人は、別ジャンルの楽曲制作でも<strong>自然に「正しい判断」ができる</strong>。これが、ダンスミュージックを学ぶ本当の意味です。</p>
+
+    <h4>他ジャンルの育成現場でも、ダンスミュージック基礎は採用されている</h4>
+    <p><strong>J-Popのソングライティングを学ぶ場でも、ダンスミュージックのカリキュラムが正式に採用されることは珍しくない</strong>。ダンスミュージックで扱う <strong>トラックメイキング・ミックス・サウンドデザイン</strong> は、ジャンルを問わない普遍的な土台だからです。本場の考え方・音の選び方・構築の作法を通らずに表面だけ真似ても、<strong>根拠を持って音を選べないまま</strong>になります。</p>
+
+    <h4>海外に目を向ければ、さらに恩恵は大きい</h4>
+    <p>世界の電子音楽産業は持続的に成長中。SoundBetter のような海外フリーランスプラットフォームでは、<strong>1曲あたり数百〜数千ドル規模</strong>の案件が常時公開されています。この機会を取れる日本人プロデューサーは限られている。EDM飽和と思われている今だからこそ、踏み込む価値があります。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 07 危機感">
+    <div class="chapter-head"><span class="chapter-num">CH 07</span><h3>危機感 ／ AI時代の判断軸・5年後の自分</h3><span class="duration">約1.5分</span></div>
+    <p>「今そこそこ結果が出せている、海外基準なんて要らない」と思う方もいるかもしれません。ただ正直、<strong>いまのやり方で本当にレベルが上がっているか自信を持てない人の方が、圧倒的に多い</strong>はずです。放置すれば、こうなります。</p>
+    <ul class="bullet">
+      <li>制作スピードもクオリティも上がらず、毎回同じような楽曲しか作れない</li>
+      <li>正しい方法を使えていないから、音像が悪くて、自分でも納得できる仕上がりにならない</li>
+      <li>結果が伴わないから、モチベーションが下がっていく</li>
+    </ul>
+    <p>そして、AIの進化が凄まじい。ただ、<strong>AIが進化するほど、判断軸を持っている人の価値が上がる</strong>。AIは提案や素材を出してくれますが、それを自分の表現に合わせて<strong>どうアジャストし、どう判断するか</strong>は最後まで人間の領域です。</p>
+    <div class="callout">
+      <p><strong>判断軸を持っている人にとって、AIは武器になる</strong>。</p>
+      <p><strong>判断軸を持っていない人にとっては、AIは脅威にしかなりません</strong>。</p>
+    </div>
+    <p>いま海外基準の判断軸を身につけないと、5年後・10年後の自分が、確実に後悔します。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 08 YouTube限界">
+    <div class="chapter-head"><span class="chapter-num">CH 08</span><h3>YouTube限界(構造的問題)＋ 受講生事例</h3><span class="duration">約3-4分</span></div>
+    <p>ここまで聞いて、こう感じる人もいると思います。「自分もそうなりたくないと思って勉強してる。YouTubeでダンスミュージックの作り方を、毎日のように見て学んでる。でも、なかなか成果が出ない」と。</p>
+    <p>中には、1年、2年と勉強し続けているのに、基礎から抜け出せない人もいる。なぜそうなってしまうのか。</p>
+    <p>結論から言うと、<strong>YouTubeのチュートリアル動画を見続けるだけでは、構造的に上達できない</strong>仕組みになっています。これは、チュートリアル動画そのものが悪いという話ではありません。<strong>YouTubeチュートリアルの構造そのもの</strong>に、問題があります。</p>
+    <h4>YouTubeの構造的な問題</h4>
+    <p>YouTubeの動画は、ピンポイントで、極端で、衝撃のある情報の方が再生されやすい仕組みになっています。だから多くのチュートリアルは、<strong>断片的な情報を、注目を集めやすい順序で詰め込んでいる</strong>。順序や前後関係、なぜそうするのかという判断軸の部分は、ほとんど解説されません。</p>
+    <p>ダンスミュージック制作には、初めの段階で持つべきスキルと、あとで知るべきスキルがあります。でも、ほとんどのチュートリアルは、その順序を無視して、断片を切り取って投げてくる。どの技術がいま必要で、どれがあとで役立つのか。それを全部、見ている側で自分で判断しないといけなくなる。</p>
+    <p>これでは、「いまの自分のレベル・段階に本当に必要なもの」をピックアップすることができません。結果として、<strong>たくさん勉強しているのに成果が出ない、何をどういう順番で学べばいいのかわからない</strong>、という状況に陥ってしまう。</p>
+    <h4>実例</h4>
+    <div class="case-block">
+      <div class="case-label">Case ／ 受講生事例</div>
+      <p>実際、僕の受講生の中にも、独学でYouTubeチュートリアルを長年見続けてきた方がいました。でも、結局<strong>8小節のループから抜け出せないまま、時間だけが過ぎていた</strong>。</p>
+      <p>その方は、いまは自分でアイドルグループを立ち上げて、楽曲制作・サウンドディレクションをすべて担当しています。<strong>タワーレコード流通で、1stアルバムをリリースする</strong>ところまで辿り着きました。</p>
+    </div>
+    <p><strong>やり方が違うだけで、結果はまったく変わります</strong>。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 09 プラグイン売り問題">
+    <div class="chapter-head"><span class="chapter-num">CH 09</span><h3>プラグイン売り問題 — 道具神話否定</h3><span class="duration">約1分</span></div>
+    <p>補足です。YouTubeのチュートリアル動画の多くは、アフィリエイト報酬目的で<strong>特定のプラグインを売ることがゴール</strong>になっています。僕自身もプラグイン紹介動画は出しますが、実際に制作で使って質を感じたものだけです。</p>
+    <p>一方、<strong>ソフトが売れればOK、というスタンスの動画もたくさんある</strong>。そういう動画は使い方は教えても、<strong>どのジャンルで、どの段階で、どういう判断軸で使うか</strong>は教えてくれない。教習所で座学だけ習って運転できるようにならないのと同じです。</p>
+    <div class="callout">
+      <p><strong>プラグインを増やすほど、音が悪くなることもあります</strong>。道具が多いと、何を使うべきかの判断が難しくなる。必要なのは道具の数ではなく、<strong>判断軸</strong>です。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 10 結果を真似する罠">
+    <div class="chapter-head"><span class="chapter-num">CH 10</span><h3>結果を真似する罠 ＋ シグネチャA核心提示</h3><span class="duration">約3-4分</span></div>
+    <p>ここから、本題の核心に入っていきます。</p>
+    <p>僕も最初は、海外プロのプロデューサーが解説しているマスタークラスを必死に見ていました。彼らがどんなプラグインを、どんな設定で使っているか。それを見て、自分の制作に持ち込もうとしていました。</p>
+    <p>ある時のマスタークラスで、彼が Waves のあるプラグインを使っていました。これは偶然、自分も同じものを持っていた。だから、嬉しくなって、画面に映っているノブの位置を見ながら、<strong>0.1単位で同じ数値に合わせて</strong>みました。</p>
+    <p>確かに、音は変化しました。今までの自分のやり方とは違うサウンドになる、というのは、分かる。ただ、いくらやっても、<strong>肝心なところが分からなかった</strong>。</p>
+    <div class="callout">
+      <p><strong>なぜ、この音に対して、彼はそのプラグインを使うことに決めたのか。</strong></p>
+      <p><strong>なぜ、その数値に設定するに至ったのか。</strong></p>
+    </div>
+    <p>そこに行き着く「<strong>判断のプロセス</strong>」が、僕にはまったく見えていなかった。数値を真似しただけだから、別の曲、別の状況になると、もう同じ判断ができない。彼の作る音に、自分の音は、絶対に届かない。</p>
+    <p>これに気づいた瞬間、僕の中で、1つの結論が生まれました。</p>
+    <div class="signature">
+      <div class="label">Signature A ／ 核心提示</div>
+      <div class="quote">結果を真似しても、音は変わらない。<br>プロセスを真似ろ。</div>
+    </div>
+    <p>これが、海外基準のダンスミュージック制作に到達するための、<strong>最も重要な前提</strong>です。プリセットの数値、プラグインのチェイン、EQのカーブ。こういう「結果」は、いくら真似しても、自分の判断軸にはなりません。</p>
+    <p>そうじゃなくて、彼らがその音を作る時に<strong>何を考えて、何を比べて、何を選んでいたか</strong>。そのプロセスを、自分のものとして再現できるところまで踏み込まないと、結局、音は変わらない。ここを取り違えたまま、何年も走り続けている人が、本当に多いです。</p>
+    <h4>受講生の実例</h4>
+    <div class="case-block">
+      <div class="case-label">Case ／ 受講生事例</div>
+      <p>ある受講生も、まさに同じ罠にハマっていました。有名プロデューサーのEQ設定を完全にコピーしても、自分の曲は全然違う音になる。<strong>2年間、機材投資を続けたけど、出口が見えなかった</strong>。</p>
+      <p>でも、プロセスを真似ることに切り替えてから、半年後には <strong>エイベックスと Nicky Romero さんのレーベル Protocol Recordings</strong> が組んだプログラムで、<strong>Nicky Romero さん本人から直接フィードバック</strong>を受けるところまで到達しました。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 11 1人では届かない">
+    <div class="chapter-head"><span class="chapter-num">CH 11</span><h3>「だから1人では届かない」 ＋ シグネチャD伏線</h3><span class="duration">約45秒</span></div>
+    <p>5つの角度を整理すると、こうです。</p>
+    <ul class="summary-list">
+      <li><strong>チャンス論</strong>ダンスミュージックの技術は、音楽全体の基盤になる</li>
+      <li><strong>危機感</strong>AI時代こそ、判断軸を持っている人だけが生き残る</li>
+      <li><strong>YouTube限界</strong>断片情報の羅列では、構造的に上達できない</li>
+      <li><strong>道具神話</strong>プラグインの数ではなく、判断軸が必要</li>
+      <li><strong>結果を真似する罠</strong>プロセスを真似なければ、音は絶対に変わらない</li>
+    </ul>
+    <div class="callout"><p><strong>海外基準のダンスミュージック制作は、1人だけでやるには、構造的に難しすぎる</strong>。努力ではなく、<strong>仕組みの問題</strong>です。</p></div>
+    <p>壁を越えるには、<strong>正しい順序、正しい判断軸、正しいフィードバック</strong>。この3つが必要。特に3つ目の<strong>正しいフィードバック</strong>が、僕の核です。</p>
+    <div class="signature">
+      <div class="label">Signature D ／ 伏線</div>
+      <div class="quote">自分一人で気づけることは、想像以上に少ない。</div>
+    </div>
+    <p>明日のHow動画で、詳しくお話しします。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 12 次回予告">
+    <div class="chapter-head"><span class="chapter-num">CH 12</span><h3>次回予告 ＋ 個別相談への動線</h3><span class="duration">約1分</span></div>
+    <div class="next-episode">
+      <div class="label">Next Episode</div>
+      <div class="title">明日、第2回(How動画)が、LINEに自動で届きます。<br>タイトル: 「LAで世界トップから受けたフィードバックと、そこから生まれた3つの判断軸」</div>
+    </div>
+    <p>僕がLAでAFSHEEN にフィードバックを受けた話、そして、そこから生まれた <strong>GINPEI式・3軸メソッド</strong> について、お話しします。</p>
+    <div class="cta-block">
+      <div class="cta-label">▷ 早期 個別相談動線</div>
+      <p>もう「次に進む覚悟ができている」と感じた方は、第2回・第3回を待たずに、<strong>いまから個別相談を申し込むこともできます</strong>。LINEメニュー『<strong>個別相談を申し込む</strong>』から。お申込み時点で、自動的に <strong>『COLLECTIVE 詳細動画』(約17分)</strong> のリンクをお送りします。<strong>料金・コンテンツ・参加条件を先に把握した上で、個別相談に進む流れ</strong>です。</p>
+      <p>無理に急ぐ必要はありません。第2回・第3回まで見てから動くのも、自然な流れです。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 13 末尾ナレ">
+    <div class="chapter-head"><span class="chapter-num">CH 13</span><h3>末尾ナレ ＋ 締め</h3><span class="duration">約30秒</span></div>
+    <p>それでは、また、明日。</p>
+    <div class="narration"><p>次回、第2回 How動画。3つの判断軸について。LINEに自動で届きます。本シリーズは3回限定の配信です。</p></div>
+  </section>
+</section>
+
+<div class="day-divider"></div>
+
+<!-- ====== Day 2 How動画 ====== -->
+<section class="day" id="day2-how" data-day="how" data-title="Day 2 How動画">
+  <div class="day-header" data-bignum="03">
+    <span class="day-label">Day 2 ／ How動画</span>
+    <div class="day-kind">🎬 動画 ／ 約14-17分</div>
+    <h2>LAで世界トップから受けたフィードバックと、そこから生まれた3つの判断軸</h2>
+    <div class="day-role">正しい解決法 ＋ GINPEI式・3軸メソッド ＋ LA体験の核心</div>
+    <div class="day-meta">配信: <b>Day 2(Why動画の翌日)</b> ／ シリーズ第2回 ／ <b>LINE登録者限定</b></div>
+  </div>
+
+  <section class="chapter" data-chapter="CH 01 ナレ導入">
+    <div class="chapter-head"><span class="chapter-num">CH 01</span><h3>ナレ導入</h3><span class="duration">15秒</span></div>
+    <div class="narration"><p>第2回 How動画。<strong>海外基準のダンスミュージック制作を、最短で身につけるための、3つの判断軸</strong>について。</p></div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 02 挨拶＋今日のテーマ">
+    <div class="chapter-head"><span class="chapter-num">CH 02</span><h3>挨拶 ＋ 今日のテーマ</h3><span class="duration">約20秒</span></div>
+    <p>Why動画では、独学では構造的に到達できない理由をお話ししました。今回は、壁を越えるための<strong>正しい解決法</strong>。<strong>Hey! Say! JUMP・ASCA・櫻坂46といったメジャー案件</strong>、そしてLAで AFSHEEN にフィードバックを受けた経験から生まれた <strong>GINPEI式・3軸メソッド</strong> をお話しします。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 03 動画見るだけでは解決しない">
+    <div class="chapter-head"><span class="chapter-num">CH 03</span><h3>「動画見るだけでは解決しない」</h3><span class="duration">約1.5分</span></div>
+    <p>最初に、前提を共有します。</p>
+    <div class="callout"><p><strong>動画を見ているだけでは、解決できない問題は、山ほどあります</strong>。</p></div>
+    <p>動画でなんとなく知識が深まると、<strong>「自分の曲のレベルが上がったような気がする」錯覚</strong>を起こす。これがすごく危ない。インプットしているだけでは、その知識が自分の曲に活きているかは判断できません。一人で「うまくいった気がする」と思っていても、外から見ると課題が山ほどある、ということがいくらでもある。</p>
+    <p><strong>動画を見ているだけだった頃の自分は、東京のクラブで曲が止まる前の自分そのものでした</strong>。これは、僕のYouTube動画に限らず、COLLECTIVEの教材動画を見るだけでも同じです。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 04 IOFループ">
+    <div class="chapter-head"><span class="chapter-num">CH 04</span><h3>インプット × アウトプット × フィードバック</h3><span class="duration">約1.5分</span></div>
+    <p>何が必要か。</p>
+    <div class="callout"><p><strong>インプットと、アウトプット。この両方の機能が、必ず必要です</strong>。</p></div>
+    <p>自分が曲を作る=アウトプットし、その曲をプロの視点でフィードバックを受ける。この組み合わせで、上達スピードがまったく違ってきます。</p>
+    <p>フィードバックの場があると、<strong>プレッシャー</strong>になります。「次に何かを提出しないといけない」という圧が、アウトプットのスピードを上げる。スピードが量を生み、量が質を担保する。このループに自然に入る — これが上達の本質です。</p>
+    <div class="signature">
+      <div class="label">Core Method</div>
+      <div class="quote">インプット × アウトプット × フィードバック</div>
+    </div>
+    <p>これがセットになっていないと、いくら勉強しても、情報は活きてきません。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 05 GINPEI迷走期">
+    <div class="chapter-head"><span class="chapter-num">CH 05</span><h3>GINPEI迷走期 — 4部圧縮</h3><span class="duration">約1.5-2分</span></div>
+    <p>このループに入る前の僕の話を、少しだけ。</p>
+    <p>音楽を本格的に始めたのは、20歳、大学1年。YouTubeで<strong>Tomorrowlandのアフタームービー</strong>を観た瞬間、海外のDJが自分で曲を作っていると知って衝撃を受けた。そこから僕の音楽制作が始まりました。</p>
+    <p>最初は大学支給のMacBookでGarageBand。次に<strong>Native InstrumentsのMaschine</strong>、その後<strong>Logic Pro</strong>。どれも使いこなせなかった。憧れは<strong>ビッグルーム黄金期</strong>の重低音。でも、どうすればその音になるのか、全然わからなかった。</p>
+    <p>だから、<strong>お金で解決しようとしました</strong>。プラグインを買い揃え、海外マスタークラスや<strong>Amsterdam Dance Event(ADE)</strong>、オランダの<strong>Dancefair</strong>の講義配信を、数万円する視聴チケットを何本も買いました。</p>
+    <p>でも、得られるものはほとんどなかった。英語の壁、手元のプラグインの違い。結局<strong>自分の方法に転用できなかった</strong>。プリセットと数字は真似できても、<strong>判断軸を真似できなかった</strong>。</p>
+    <p>何度も『このまま続けてもダメなんじゃないか』と思った。それでも僕は続けられた。深夜に何かアイデアを形にしたとき、<strong>「すごい音楽を作ったんじゃないか」と自分だけは勘違いできた</strong>。翌朝にはその勘違いは<strong>自分自身に思いっきり踏みつぶされる</strong>。でも、その繰り返しが、僕を辞めさせなかった。</p>
+    <div class="callout"><p><strong>ただし、続けるだけじゃ足りなかった</strong>。お金も時間もかけても、海外のサウンドとの差は埋まらないままだったから。</p></div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 06 LA体験 AFSHEEN">
+    <div class="chapter-head"><span class="chapter-num">CH 06</span><h3>LA体験 — AFSHEEN</h3><span class="duration">約3-4分</span></div>
+    <p>そんな時、僕に転機が訪れます。仕事で、ロサンゼルスに行く機会がありました。そこでご縁があって、あるプロデューサーの自宅スタジオに、お邪魔できることになりました。自分の曲を、聴いてもらえる機会があった。</p>
+    <p>その人の名前は、<strong>AFSHEEN</strong>。LAを拠点に活動している、プロデューサー・ソングライターです。</p>
+    <p>具体的に、どんな仕事をしている人かというと、</p>
+    <ul class="bullet">
+      <li><strong>Kygoの『Carry On』</strong> — Rita Oraさんが歌っている、映画『名探偵ピカチュウ』のエンドロール曲。これを共作・共同プロデュースしている人</li>
+      <li><strong>少女時代のテヨンさんの『Four Seasons』</strong> — 韓国の音源チャートで1位を取った楽曲を、作曲した人</li>
+      <li><strong>Armin van Buurenの『Sunny Days』</strong>を共作している、など</li>
+    </ul>
+    <p>世界の第一線にいる人物が、自宅のスタジオで、僕の曲を聴いてくれました。</p>
+    <h4>何を言われたか</h4>
+    <p>僕が持っていったのは、その時期に直感的に作りまくっていたデモの中で、一番手応えがあった1曲でした。僕自身、はっきりとしたジャンル感を持って作っていたわけじゃない。「何かいいかもしれない」「課題があるような気はする」というぐらいの、ぼんやりした手応え。</p>
+    <p>聴き終わって、AFSHEEN が指摘してくれたことが、大きく2つありました。</p>
+    <div class="afsheen-fb">
+      <div class="num">指摘 01</div>
+      <div class="title">スネアの音色が、ジャンルに合っていない。</div>
+      <p>これを聞いた瞬間、頭が真っ白になりました。なぜなら、自分は、ジャンルすら明確にせず、直感だけで作っていたデモだったから。</p>
+      <p>「なんでこの人は、僕がジャンルすら定めずに作った曲を、たった一度聴いただけで、『スネアがジャンルに合っていない』って言い当てられるんだろう?」と。AFSHEEN は、<strong>楽曲全体から醸し出される印象を、一瞬で捉えていて</strong>、その全体感に対して、スネアだけが不協和を起こしている、ということを言い当てました。でも当時の僕は、そんなことに、まったく気づいていなかった。</p>
+    </div>
+    <div class="afsheen-fb">
+      <div class="num">指摘 02</div>
+      <div class="title">ボーカルが入ることが、想像できないアレンジになっている。</div>
+      <p>これも、青ざめました。僕はもともと、サウンドそのものへのこだわりから音楽制作を始めた人間です。だから、ボーカルが入ることを前提に作っていたインストでも、無意識に、<strong>インストの段階で「十分な迫力」「存在感」を出したくなってしまう</strong>。結果として、<strong>ボーカルが入る余白がない仕上げ</strong>になっていた。AFSHEEN は、それを、瞬時に指摘しました。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 07 突破した瞬間">
+    <div class="chapter-head"><span class="chapter-num">CH 07</span><h3>突破した瞬間</h3><span class="duration">約2-3分</span></div>
+    <p>AFSHEEN のフィードバックを受けてから、僕の音楽制作に対する考え方は、根本から変わりました。そこから僕がやり始めたのは、<strong>プロセスを真似る</strong>ということでした。</p>
+    <p>ただし、ざっくり参考にする、というレベルじゃない。<strong>もう二歩、三歩、踏み込んで</strong>、参考にする楽曲と「同じものを再現する」というところまで、本気でやる。</p>
+    <p>選んだのは、<strong>音数が少ないハウスの曲</strong>でした。音数が少ない分、一つ一つの音の判断軸が、はっきり見える。だから、再現するのに、ごまかしが効かない。それを、数曲、徹底的にやりました。</p>
+    <p>そして、ある時、書き出した曲を、いつも音楽を聴くのに使っている AirPods に入れて、再生してみました。すると、明らかに、<strong>今までの自分の曲とは違う</strong>、というのが、はっきり分かった。</p>
+    <p>これまで、自分の曲を聴く時には、必ずあったことがあります。既存のプロの楽曲と並べて、自分の曲をイヤホンで再生すると、どうしても、<strong>自分の曲を聴く時だけ、ボリュームを1個か2個、上げたくなる</strong>。それくらい、迫力が薄かった。</p>
+    <p>でも、その日、再生した自分の曲は、<strong>ボリュームを上げる必要が、まったくなかった</strong>。プロの曲と並べても、十分な迫力で、対等に鳴っている。</p>
+    <div class="callout"><p><strong>プラグインの数値を真似ても、根拠が分からなかった頃の自分</strong>は、その瞬間に、終わりました。</p></div>
+    <div class="signature">
+      <div class="label">Signature A ／ 腑に落ちた瞬間</div>
+      <div class="quote">結果を真似しても、音は変わらない。<br>プロセスを真似ろ。</div>
+    </div>
+    <p>この言葉が、自分の中で、本当に腑に落ちた瞬間でした。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 08 シグネチャD核心">
+    <div class="chapter-head"><span class="chapter-num">CH 08</span><h3>シグネチャD核心 「自分一人で気づけることは、想像以上に少ない」</h3><span class="duration">約45秒</span></div>
+    <p>この体験から、いま一番大事にしている考え方が生まれました。</p>
+    <div class="signature">
+      <div class="label">Signature D ／ 核心</div>
+      <div class="quote">自分一人で気づけることは、想像以上に少ない。</div>
+    </div>
+    <p>何年も一人で解けなかったことが、客観的な視点が入った瞬間に解決する。クラブで曲が止まった原因の根っこは、<strong>LAでAFSHEENにフィードバックをもらった時に、ようやく言葉になりました</strong>。これは特別な話ではなく、<strong>本気で結果を出したい人にとって構造的に必ず必要なもの</strong>です。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 09 GINPEI式・3軸メソッド">
+    <div class="chapter-head"><span class="chapter-num">CH 09</span><h3>GINPEI式・3軸メソッド</h3><span class="duration">約4-5分</span></div>
+    <p>ここからの話を、最短最速で再現できるように、<strong>3つの判断軸</strong>に整理しました。これが、<strong>海外基準のダンスミュージック制作を最短で身につけるための、GINPEI式・3軸メソッド</strong>です。</p>
+
+    <div class="judgment-axis">
+      <div class="num">判断軸 01</div>
+      <div class="title">ジャンルの判断軸を持つ</div>
+      <p>最初の判断軸は、ジャンルです。ただし、ここで言うジャンルというのは、「こういう曲を作りたい」とぼんやり思い描くことではありません。<strong>作りたいジャンルが、なぜそのサウンドである必要があるのか。その判断軸を、自分の中に持つ</strong>ということです。</p>
+      <p>例えば、Trapを作りたい、と思ったとします。Trapと言われると、多くの人は「ハイハットが細かく刻まれる音楽」みたいなイメージを持つ。でも、それは、<strong>Trapの結果</strong>でしかありません。そうじゃなくて、<strong>Trapが、なぜそのハイハットを必要としているのか</strong>。そのジャンルが、なぜそのリズム、そのテンポ、そのサウンドである必要があるのか。そこに踏み込んで理解しないと、「Trapを真似しているけど、Trapになりきらない曲」しか、できません。</p>
+      <p>これは、僕がLAで AFSHEEN に指摘されたことと、完全に繋がっています。<strong>スネアの音色がジャンルに合っていない</strong>、というその指摘。あれは、僕が、ジャンルの判断軸を持っていなかったから、起きたことです。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">判断軸 02</div>
+      <div class="title">工程の判断軸を持つ</div>
+      <p>2つ目は、制作の全体像、つまり、工程の判断軸です。これは、僕が COLLECTIVE で受講生のフィードバックをしている時に、いちばん多く出会うパターンです。</p>
+      <p>受講生の方が、自分の楽曲を提出する時に、よく書いてくる課題感があります。<strong>「マスタリングがうまくいっていない気がする」</strong>、<strong>「ミックスが原因で、音が濁っている気がする」</strong>。でも、実際に楽曲を聴いてみると、<strong>99%は、マスタリングやミックスの問題じゃない</strong>。もっと手前。<strong>アレンジ、もっと言えば、音選びの段階で、すでに問題が生じている</strong>。</p>
+      <p>自分の曲となると、客観的な判断が、どうしても難しくなります。だから、迫力が薄い、音が濁っている、という違和感を、すべて「最後の工程の問題」だと勘違いしてしまう。本当にやらないといけないのは、<strong>もっと手前の工程に立ち返ること</strong>。ここの判断軸を持っているかどうかで、制作の効率も、最終的なクオリティも、まったく変わります。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">判断軸 03</div>
+      <div class="title">プロのフィードバックという外からの判断軸</div>
+      <p>そして、3つ目が、<strong>プロのフィードバック</strong>です。これは、章8で話した内容と完全に繋がります。</p>
+      <p><strong>自分一人で気づけることは、想像以上に少ない</strong>。</p>
+      <p>ジャンルの判断軸、工程の判断軸、ここまでの2つは、知識として身につけられます。でも、<strong>自分の楽曲が、その判断軸に対して、いま本当に届いているかどうか</strong>。これを、自分一人で正確に評価することは、本質的に、できません。なぜなら、自分の曲だから。客観的に聴けないし、自分が好きで作っているから、判断が甘くなる。</p>
+      <p>ここを補ってくれる、<strong>信頼できるプロからの客観的なフィードバック</strong>。これが、3つ目の判断軸の核です。</p>
+    </div>
+
+    <div class="callout">
+      <p>この3つの判断軸が揃った時、はじめて「海外基準のダンスミュージック制作」が、再現可能な技術として、自分のものになります。</p>
+      <p>そしてもう1つ、大事なこと。<strong>この3つの判断軸は、ダンスミュージック特化の話に聞こえるかもしれませんが、ジャンルを問わず、本気で音楽を作るすべての人に通用する判断軸</strong>です。ボカロでも、J-Popでも、ロックでも、アニメ音楽でも、根っこの判断構造は同じです。</p>
+      <p>そして、この<strong>3つ目の判断軸</strong>を、<strong>無制限に、しかも参考曲とセットで</strong>提供する仕組みを作りたくて、僕はあるオンラインスクールを運営しています。</p>
+    </div>
+
+    <h4>3軸メソッドを「ものさし」として持つ</h4>
+    <p>例えるなら、料理人と初心者の差です。料理を作る時、<strong>「塩加減」「火加減」「タイミング」</strong> という <strong>自分の中のものさし</strong> を持っている料理人と、レシピを見て数字通りに作る初心者。同じ材料・同じプロセスでも、<strong>ものさしを持つ料理人は、素材が違っても、状況が違っても、毎回プロの味に届く</strong>。<strong>いつ筆を置くか・ひと味足すか引くか</strong> ― それが、自分で分かる。</p>
+    <p>3軸メソッドは、これと同じです。<strong>ジャンル・工程・プロフィードバック という3つの「ものさし」</strong> を、自分の中に持つ。これが、<strong>3年経っても、5年経っても、ジャンルが変わっても、ずっとあなたの音楽制作を支える資産</strong> になります。</p>
+
+    <p>明日の第3回(Proof動画)で、実際に変わった受講生たちの話を、詳しくお伝えします。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 10 次回予告">
+    <div class="chapter-head"><span class="chapter-num">CH 10</span><h3>次回予告 ＋ 早期個別相談動線</h3><span class="duration">約45秒</span></div>
+    <div class="next-episode">
+      <div class="label">Next Episode</div>
+      <div class="title">明日、第3回 Proof動画が、LINEに自動で届きます。<br>タイトル: 「独学で8小節ループから抜け出せなかった人が、海外レーベルに届くまで ／ 受講生8人の突破ストーリー」</div>
+    </div>
+    <p>受講生たちが実際にどう変わったか、詳しくお話しします。</p>
+    <div class="cta-block">
+      <div class="cta-label">▷ 早期 個別相談動線</div>
+      <p>「次に進む覚悟ができている」と感じた方は、第3回を待たずに、LINEメニュー『<strong>個別相談を申し込む</strong>』から進めます。お申込み時点で <strong>『COLLECTIVE 詳細動画』(約17分)</strong> のリンクが自動送付されます。明日のProof動画で受講生事例まで確認してから判断するのも、自然な流れです。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 11 末尾ナレ">
+    <div class="chapter-head"><span class="chapter-num">CH 11</span><h3>末尾ナレ ＋ 締め</h3><span class="duration">約15秒</span></div>
+    <p>それでは、また、明日。</p>
+    <div class="narration"><p>次回、第3回 Proof動画。受講生8人の突破ストーリー。LINEに自動で届きます。</p></div>
+  </section>
+</section>
+
+<div class="day-divider"></div>
+
+<!-- ====== Day 3 Proof動画 ====== -->
+<section class="day" id="day3-proof" data-day="proof" data-title="Day 3 Proof動画">
+  <div class="day-header" data-bignum="04">
+    <span class="day-label">Day 3 ／ Proof動画</span>
+    <div class="day-kind">🎬 動画 ／ 約15-17分</div>
+    <h2>独学で8小節ループから抜け出せなかった人が、海外レーベルに届くまで ／ 受講生8人の突破ストーリー</h2>
+    <div class="day-role">受講生事例 ＋ 社会的証明 ＋ 個別相談への自然な誘導</div>
+    <div class="day-meta">配信: <b>Day 3(How動画の翌日)</b> ／ シリーズ第3回・動画最終回 ／ <b>LINE登録者限定</b></div>
+  </div>
+
+  <section class="chapter" data-chapter="CH 01 ナレ導入">
+    <div class="chapter-head"><span class="chapter-num">CH 01</span><h3>ナレ導入</h3><span class="duration">15秒</span></div>
+    <div class="narration"><p>第3回 Proof動画。<strong>独学で行き詰まっていた音楽制作者たちが、どうやって突破したか</strong>。</p></div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 02 挨拶＋今日のテーマ">
+    <div class="chapter-head"><span class="chapter-num">CH 02</span><h3>挨拶 ＋ 今日のテーマ</h3><span class="duration">約20秒</span></div>
+    <p>Why動画・How動画で、独学の構造的限界と <strong>GINPEI式・3軸メソッド</strong> をお話ししました。今回は、そのメソッドで突破した <strong>受講生たち</strong> と <strong>僕自身の境目</strong> の話です。</p>
+    <div class="callout"><p>実例の多くはダンスミュージックですが、<strong>判断軸とフィードバックの原理は、どのジャンルでも変わりません</strong>。本気で音楽を作るすべての人に通じる話です。</p></div>
+    <p>最後に、ここから先に進みたい方への <strong>具体的な次の一歩</strong> をお伝えします。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 03 GINPEI実績の境目">
+    <div class="chapter-head"><span class="chapter-num">CH 03</span><h3>GINPEI実績の境目 — プロセス模写実装後</h3><span class="duration">約3分</span></div>
+    <p>第1回で、僕が携わった案件をいくつかご紹介しました。</p>
+    <p><strong>Sony Music</strong>所属アーティストへの楽曲提供、北米ツアー帯同、<strong>LAでのスタジオプロダクション参加</strong>、<strong>杉山勝彦さんの作家事務所所属</strong>。</p>
+    <div class="callout"><p>これらの機会は、すべて、<strong>プロセス模写を実装する前</strong>の出来事でした。</p></div>
+    <p>もちろん、大きな機会で、本当にありがたかった。でも、自分の中ではまだ、<strong>技術的なブレイクスルーには到達していなかった</strong>。あくまで「いまのうちに繋がっていただいているけれど、自分はまだ、ここに見合うレベルじゃない」という感覚を、ずっと抱えていました。</p>
+    <p>そして、AFSHEEN のフィードバックを受け、プロセス模写を実装した後。本当に <strong>「自分の中で何かが変わった」</strong> と感じられる、最初の大きな案件が訪れます。</p>
+    <p><strong>Hey! Say! JUMP さんのアルバム『PULL UP!』に収録されている『Tiki Don』</strong>。メンバーの方から、直接オファーをいただいて、作曲・編曲を担当しました。</p>
+    <p>これが、僕の中で、プロセス模写を実装した後の、最初のメジャー案件です。<strong>自分の中で技術的な突破を感じた、その直後に、その変化が、最も分かりやすい形で、結果として返ってきた</strong>。</p>
+    <p>そこから、<strong>ASCAさんの『Stellar』</strong>、<strong>櫻坂46さんの『今さらSuddenly』</strong>と、続いていきます。</p>
+    <p>東京のクラブで自分の曲が止まった日から、何度も何度も挑戦して、ようやく届く場所まで来ました。<strong>「変わる前」と「変わった後」のはっきりとした境目が、ここにあります</strong>。</p>
+
+    <p>そして、いまも、その続きの場所で動き続けています。</p>
+
+    <ul class="bullet">
+      <li><strong>メジャー案件の合間に、スタジオで自分の曲を作っている日常</strong></li>
+      <li><strong>世界中のアーティストやプロデューサーと対等にセッションし、一緒に楽曲制作をする時間</strong></li>
+    </ul>
+
+    <p>20歳の頃に Tomorrowland のアフタームービーを観て憧れた場所に、いま、自分の足で立っています。</p>
+
+    <p><strong>だからこそ、僕は「ダンスミュージック」と「J-Popのメジャー案件」、両方を実際に行き来している立場にいます</strong>。COLLECTIVE が、単なるEDM 専門のスクールではなく、<strong>ジャンルを越えて応用できる音作りの土台</strong> を扱える理由は、ここにあります。</p>
+
+    <p>そして、この体験を、自分だけのものにしておきたくない。だから、僕は同じ突破を、別の人にも届けたくて、<strong>COLLECTIVE</strong> というスクールを作りました。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 04 受講生8事例">
+    <div class="chapter-head"><span class="chapter-num">CH 04</span><h3>受講生実績 深堀り(8事例)</h3><span class="duration">約8-10分</span></div>
+    <p>ここから、<strong>実際に COLLECTIVE で突破していった受講生たち</strong> の話をします。全員、最初は「独学で行き詰まっていた」ところからのスタートでした。</p>
+
+    <div class="case-card">
+      <div class="case-num">事例 01</div>
+      <div class="case-title">アイドルグループ立ち上げ・1stアルバムリリース</div>
+      <p><strong>ある受講生</strong>は、独学で何年もかけて、ずっと <strong>8小節のループから抜け出せませんでした</strong>。YouTubeチュートリアルを長年見続けたけど、出口が見えなかった。</p>
+      <p>でも COLLECTIVE に入って、<strong>判断軸を1つずつ自分の中に組み立て直していった</strong>ところ、</p>
+      <ul class="bullet">
+        <li>自分でアイドルグループを立ち上げた</li>
+        <li>楽曲制作・サウンドディレクションをすべて担当した</li>
+        <li><strong>タワーレコード流通で、1stアルバムをリリース</strong> するところまで到達</li>
+      </ul>
+      <p>最初の壁は「ループから抜け出せない」だったのが、いまは <strong>「アルバム1枚をセルフでミックス・マスタリングまで含めてリリースする」</strong> までいきました。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">事例 02</div>
+      <div class="case-title">Nicky Romero から直接フィードバック</div>
+      <p><strong>別の受講生</strong>は、プラグインを揃えても「音が違う」と、ずっと悩み続けていました。2年間、機材投資を続けたけど、突破口がなかった。</p>
+      <p>でも、プロセスを真似ることに切り替えて、フィードバックを毎月受け続けたところ、</p>
+      <ul class="bullet">
+        <li><strong>エイベックスと Nicky Romero さんのレーベル Protocol Recordings が組んだ次世代DJ発掘プログラム『GIANTKILLERZ』</strong> に応募</li>
+        <li><strong>Nicky Romero さん本人から直接フィードバック</strong> を受けるところまで到達</li>
+      </ul>
+      <p>世界の第一線で活躍するアーティスト本人から、フィードバックを受ける。これは、独学を続けている限り、絶対に届かなかった場所です。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">事例 03</div>
+      <div class="case-title">SURF Music リミックスコンテスト通過</div>
+      <p><strong>先輩受講生</strong>の中には、COLLECTIVE で <strong>1年弱</strong> 積み上げた後、<strong>SURF Music のリミックスコンテスト</strong> で審査を通過した方もいます。そこから、<strong>ビクターとエイベックスから配信リリースが決定</strong> しました。国内の大手レーベルから自分の楽曲が配信される、というのは、独学のままだと届きにくい場所です。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">事例 04</div>
+      <div class="case-title">Protocol Recordings ショートリスト</div>
+      <p><strong>ある卒業生</strong>は、COLLECTIVE で <strong>半年から1年</strong> かけて参考曲セットでの逆算フィードバックを積み重ねた後、<strong>LabelRadar経由の Nicky Romero リミックスコンテスト</strong> で、<strong>Protocol Recordings のショートリスト・ウォッチリスト</strong> に追加されました。海外レーベルの目に留まる、という意味では、これは大きな一歩です。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">事例 05</div>
+      <div class="case-title">Purple Fly Records から海外リリース</div>
+      <p><strong>過去には</strong>、<strong>Laidback Luke</strong> や <strong>BEAUZ</strong>、<strong>Sevenn</strong> などが所属する海外レーベル『<strong>Purple Fly Records</strong>』から、楽曲をリリースした受講生もいます。<strong>入会から1年程度</strong> で、ここまで届きました。海外レーベルから直接リリース、という、独学で目指す人がたくさんいる場所に、実際に届いた事例です。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">事例 06</div>
+      <div class="case-title">G-Mafia Records から海外リリース</div>
+      <p><strong>Martin Garrix さん主宰の STMPD RCRDS から複数リリースしている NUZB</strong> と同じレーベル『<strong>G-Mafia Records</strong>』から、楽曲をリリースした受講生も、過去にいました。<strong>こちらも1年前後</strong> での到達です。海外のジャンル特化レーベルから、自分の楽曲が世界に出ていく、という体験です。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">事例 07</div>
+      <div class="case-title">ミックス動画100万回再生</div>
+      <p><strong>自身の楽曲を含むミックス動画が、100万回再生</strong>を達成した受講生もいます。<strong>COLLECTIVE 在籍中の作品</strong> が、世界中の100万人に届きました。自分の作品が、世界に届く、という体験は、独学のままだと再現が難しい場所です。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">事例 08</div>
+      <div class="case-title">クラブで自作曲だけのDJセット</div>
+      <p>あるいは、東京のクラブで、<strong>自作曲だけで構成したDJセット</strong>を始めた受講生もいます。<strong>入会から半年以内</strong>で、ここまで踏み出しました。<strong>僕がフロアで自作曲を止めた場所</strong>から、別の受講生が <strong>始める</strong> ところに立っている。これは、僕にとっても、感慨深い事例です。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 05 共通しているもの">
+    <div class="chapter-head"><span class="chapter-num">CH 05</span><h3>共通しているもの — 総括</h3><span class="duration">約45秒</span></div>
+    <p>どれも、最初は <strong>「独学で行き詰まっていた」</strong> ところからのスタート。半年〜1年、それぞれのペースで到達しています。</p>
+    <div class="callout">
+      <p>共通しているのは、<strong>インプット × アウトプット × フィードバック</strong> のループに入ったこと。<strong>ジャンル・工程・プロのフィードバックという3つの判断軸</strong>を、順番に組み立て直したこと。</p>
+    </div>
+    <p><strong>やり方が違えば、結果はまったく変わります</strong>。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 06 個別相談の意味">
+    <div class="chapter-head"><span class="chapter-num">CH 06</span><h3>個別相談の意味</h3><span class="duration">約1.5分</span></div>
+    <p>なぜCOLLECTIVEの詳細を一律に公開せず、まず<strong>個別相談</strong>でしかお伝えしないのか。理由は、<strong>真剣に音楽に取り組む姿勢のある人だけが集まる場であってほしい</strong>からです。<strong>真剣に向き合う仲間だけがいる場</strong> — これがコミュニティの質を保つ上で、何より大事にしているものです。</p>
+    <p>1つだけ誤解しないでほしいことがあります。3回シリーズを最後まで聞いてくれた方は、課題を良い方向に持っていきたいという気持ちを抱えているはず。だから「<strong>個別相談</strong>」という言葉に、必要以上に身構えないでください。<strong>自分なんかが申し込んでいいのか</strong>、と思う必要はまったくありません。</p>
+    <p>申し込み時点で、意思は十分伝わっています。その上で、<strong>お互いに</strong>合うかを確認するための入り口です。</p>
+    <div class="callout">
+      <p>「<strong>自分には早いかもしれない</strong>」と感じている方こそ、ぜひ申し込んでほしい。3回シリーズを聞いてくれた時点で、<strong>もう、十分に本気度は伝わっています</strong>。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 07 2つの未来">
+    <div class="chapter-head"><span class="chapter-num">CH 07</span><h3>2つの未来</h3><span class="duration">約45秒</span></div>
+    <p>ここから、<strong>2つの未来</strong>があります。1つは、これまでと同じやり方で続けていく未来。もう1つは、<strong>3つの判断軸</strong>を身につけ、<strong>インプット × アウトプット × フィードバック</strong>のループに入る未来です。</p>
+    <p><strong>5年後、10年後</strong>振り返った時に、いま動いていてよかった、と思える方を選んでください。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 08 GINPEI自身の選択">
+    <div class="chapter-head"><span class="chapter-num">CH 08</span><h3>GINPEI自身の選択(締め)</h3><span class="duration">約45秒</span></div>
+    <p>僕も、最初からこの場所に立てたわけじゃない。東京のクラブで曲が止まった日から、<strong>何度も挑戦して、ようやく届く場所まで来ました</strong>。途中、LAでのフィードバックという決定的な転機が訪れ、自分の中で何かが確実に変わりました。</p>
+    <p>同じ瞬間は、本気で取り組み続ける限り、必ず訪れます。COLLECTIVE は、<strong>その瞬間を、できるだけ短いルートで届けたくて</strong>作った場所です。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 09 詳細動画への動線">
+    <div class="chapter-head"><span class="chapter-num">CH 09</span><h3>COLLECTIVE 詳細動画への動線 ＋ これからの数日のご案内</h3><span class="duration">約1分</span></div>
+    <p>個別相談の申し込みに進む前に、もう1本見ていただきたい動画があります。</p>
+    <div class="cta-block final">
+      <div class="cta-label">▷ COLLECTIVE 詳細動画</div>
+      <p>このすぐ後に、LINEで <strong>『COLLECTIVE 詳細動画』</strong> をお送りします。内容は、</p>
+      <ul class="bullet">
+        <li><strong>COLLECTIVE の具体的な中身</strong>(1年で何が起きるか・6つのコンテンツ・無制限フィードバック)</li>
+        <li><strong>料金</strong>(定価・モニター価格・分割・特典・期限)</li>
+        <li><strong>参加してほしい方・参加してほしくない方</strong></li>
+      </ul>
+      <p>これらをすべて詳しくお話しします。「合いそう」と感じた方だけ、動画末尾の『<strong>個別相談を申し込む</strong>』から予約してください。合わないと感じた方は、無理に予約する必要はありません。</p>
+    </div>
+    <p><strong>個別相談は、お互いに合うかを確認するための入り口</strong>。詳細動画で料金や中身を確認した上で、納得して進む方だけお会いしたい。それがお互いにとっていちばん良い形です。</p>
+    <div class="callout">
+      <p><strong>明日(Day 4)</strong>: 個別相談を受けた方の声をLINEでお送りします(テキスト)。</p>
+      <p><strong>明後日(Day 5)</strong>: 個別相談の申込締切のご案内(テキスト)。</p>
+    </div>
+    <p><strong>個別相談の枠は、あと2日</strong>です。少しでも進みたい方は、いま、COLLECTIVE 詳細動画をご確認の上、個別相談を申し込んでもらえると嬉しいです。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 10 受講生事例の先にある未来">
+    <div class="chapter-head"><span class="chapter-num">CH 10</span><h3>受講生事例の、先にある未来</h3><span class="duration">約1分</span></div>
+
+    <p>ここまで、8人の受講生事例をお伝えしました。タワーレコード流通、海外レーベルからのリリース、Nicky Romero からの直接フィードバック、Protocol Recordings のショートリスト、100万回再生 — どれも、独学のままでは届きにくい場所です。</p>
+
+    <p>ただ、COLLECTIVE で起きるのは、こうした業界での実績だけでは、ありません。</p>
+
+    <p>もっと身近に、自分自身の手応えとして、こんな未来が、現実になります。</p>
+
+    <ul class="bullet">
+      <li><strong>プロの楽曲と並べても、ミックスが綺麗で、音圧も負けていない自分の曲</strong></li>
+      <li><strong>1週間あれば、曲を完成させられるようになっている自分</strong></li>
+      <li><strong>アーティストに楽曲を提供できる、作家としての自分</strong></li>
+      <li><strong>自分の楽曲が、公式プレイリストに載っている景色</strong></li>
+      <li><strong>音楽で、制作費や収益を得られるようになっている自分</strong></li>
+      <li><strong>自分のオリジナル曲だけで、自信を持ってライブやDJができる自分</strong></li>
+    </ul>
+
+    <p>Proof動画でお伝えした受講生事例が、<strong>特別な人の話ではなく、自分にも普通に起こりうる現実だ</strong> — そう感じられるところまで、一緒に行きます。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 11 末尾ナレ">
+    <div class="chapter-head"><span class="chapter-num">CH 11</span><h3>末尾ナレ ＋ 締め</h3><span class="duration">約15秒</span></div>
+    <p>ここまで3回のシリーズを見てくれて、本当にありがとうございました。</p>
+    <p>それでは、<strong>個別相談でお会いできるのを、楽しみにしています</strong>。</p>
+    <div class="narration"><p>ここまで全3回、ありがとうございました。明日と明後日は、LINEのテキスト配信が届きます。次は、ぜひ個別相談でお会いしましょう。</p></div>
+  </section>
+</section>
+
+<div class="day-divider"></div>
+
+<!-- ====== Day 3.5 COLLECTIVE 詳細動画(凝縮版) ====== -->
+<section class="day" id="day35-sales" data-day="sales" data-title="Day 3.5 COLLECTIVE 詳細動画">
+  <div class="day-header" data-bignum="05">
+    <span class="day-label">Day 3.5 ／ COLLECTIVE 詳細動画</span>
+    <div class="day-kind">💰 動画 ／ 約16-17分(100点完成版)</div>
+    <h2>COLLECTIVE 詳細動画 ／ 料金・コンテンツ・参加条件のすべて</h2>
+    <div class="day-role">教育動画3本(Why/How/Proof)の内容を維持しつつ、料金・スクール詳細・フィルタリングだけを凝縮して提示する個別相談前の最終確認動画</div>
+    <div class="day-meta">配信: <b>Day 3 Proof動画と同日連続配信</b>(Proof視聴完了後にLINEで送付) ／ <b>LINE登録者限定</b></div>
+  </div>
+
+  <div class="callout">
+    <p><strong>設計方針</strong>: 教育動画3本で既に伝えた内容(センターピン物語・AFSHEEN・3軸メソッド・受講生事例)を<strong>再説明しない</strong>。役割は <strong>料金・コンテンツ・フィルタリングの3要素だけを凝縮提示</strong>すること。</p>
+    <p><strong>個別相談の位置</strong>: 料金・詳細は本動画で全開示済み。個別相談は売り込みではなく「お互いに合うかを確認する場」(医者・患者フレーム)。</p>
+  </div>
+
+  <section class="chapter" data-chapter="CH 01 開幕">
+    <div class="chapter-head"><span class="chapter-num">CH 01</span><h3>開幕 ／ この動画の役割</h3><span class="duration">約30秒</span></div>
+    <p>この動画には、<strong>標準ルート</strong>(Why/How/Proof視聴後)と<strong>早期申込ルート</strong>(個別相談申込時の必修動画として)の2つのルートで到達します。どちらも見終えれば、個別相談に進める状態になります。</p>
+    <p>内容は、<strong>COLLECTIVE</strong>の <strong>料金 ／ コンテンツ ／ 参加条件</strong> の3つを、すべて明確にします。</p>
+    <p>なぜ個別相談の前にお伝えするか。<strong>料金や中身を知らないまま個別相談に来てしまうと、個別相談が「売り込みの場」になってしまう</strong>からです。個別相談は、<strong>お互いに合うかを確認する場所</strong>。判断材料はここで全部出します。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 02 COLLECTIVE とは">
+    <div class="chapter-head"><span class="chapter-num">CH 02</span><h3>COLLECTIVE とは</h3><span class="duration">約1.5分</span></div>
+    <p>僕について少し補足しておくと、<strong>作曲家・編曲家として、Hey! Say! JUMP・ASCA・櫻坂46 などのメジャー楽曲を提供</strong> してきました。いまも、<strong>メジャーレーベル所属の複数のアーティストと、スタジオで一緒に楽曲制作を続けている</strong> 現役のプロデューサーです。</p>
+    <p>そして、これまでに <strong>数百曲以上の楽曲フィードバック</strong> を、直接、自分の耳と判断軸で行ってきました。</p>
+    <p>COLLECTIVE は、その経験を、<strong>1年間のスクール形式に落とし込んだもの</strong> です。</p>
+    <p>対象は、<strong>本気の音楽制作者</strong>。ボカロ、J-Pop、ロック、アニメ音楽、ダンスミュージック ― ジャンルは問いません。共通しているのは「自分の音楽を、いまの場所から、確実に変えたい」と思っている方です。</p>
+
+    <div class="callout">
+      <p>1つだけ、はっきりお伝えしておきます。</p>
+      <p><strong>COLLECTIVE の教材は、ダンスミュージック制作の体系</strong> で組まれています。J-Pop の作り方や、ロックの作り方を、そのまま教えるわけではありません。</p>
+      <p>ただし、ここで学ぶ <strong>トラックメイキング・ミックス・サウンドデザイン</strong> は、ジャンルを越えて使える普遍的な土台です。Why動画でお話ししたように、<strong>他ジャンル — J-Popのソングライティングを学ぶ場であっても、ダンスミュージックのカリキュラムが正式に採用されることは、珍しくありません</strong>。</p>
+      <p>なので、対象は「<strong>ダンスミュージックを基礎から学びたい方</strong>」と、「<strong>他ジャンルを軸にしながら、海外水準の音像を取り入れたい方</strong>」の両方になります。</p>
+    </div>
+
+    <p>役割は、How動画でお話しした <strong>GINPEI式・3軸メソッド</strong>(ジャンル ／ 工程 ／ プロフィードバック)を、<strong>自分の中に実装するための場所</strong> を提供することです。</p>
+    <p>独学では構造的に到達できない理由は、Why動画でお話しした通りです。</p>
+    <div class="signature">
+      <div class="label">Why動画のリマインド</div>
+      <div class="quote">結果を真似しても、音は変わらない。<br>プロセスを真似ろ。</div>
+    </div>
+    <p>このプロセスを、自分一人で組み立てるのは、現実的にとても難しい。COLLECTIVE は、その <strong>プロセスを組み立てる作業を、僕と一緒にやる場所</strong> です。</p>
+  </section>
+
+  <section class="chapter" data-chapter="CH 03 1年で何が起きるか">
+    <div class="chapter-head"><span class="chapter-num">CH 03</span><h3>1年で何が起きるか</h3><span class="duration">約2分</span></div>
+    <p>カリキュラムは、大きく2つの期間に分かれています。</p>
+
+    <div class="callout">
+      <p><strong>なぜ「1年」なのか</strong>(「もっと早く結果を出せないのか」と感じる方もいると思います)</p>
+      <p>3つの軸を <strong>理解 → 試す → 修正 → 定着</strong> のループで自分の中に組み込むには、物理的に時間が要ります。半年で基礎の判断軸が動く状態に達し、<strong>残り半年は実戦(海外レーベル提出・コンテスト挑戦・セルフリリース)で運用していく</strong>。これが、最短ルートです。</p>
+      <p>短期で身につけようとすると、結局 <strong>「応用が利かない断片的な知識」だけが残って、一生使える判断軸にはなりません</strong>。1年は、一生使える資産を作る <strong>最短期間</strong> として設計しています。</p>
+    </div>
+
+    <h4>前半6ヶ月 ／ 基礎完成期</h4>
+    <p>ここで、3軸メソッドを自分の中に実装します。会員サイトの『<strong>The Workflow Beginner</strong>』『<strong>The Workflow Advanced</strong>』(合計13時間以上の動画教材)で、判断軸の前提を学んだあと、課題提出・無制限フィードバックを通して、判断軸を自分の手で動かせるようになるまで、繰り返します。</p>
+    <h4>後半6ヶ月 ／ 加速期</h4>
+    <p>ここでは、その判断軸を持った状態で、実際の場に出ていきます。</p>
+    <ul class="bullet">
+      <li>海外レーベルへの楽曲提出</li>
+      <li>リミックスコンテストへの参加</li>
+      <li>セルフリリース(自分の楽曲を自分でリリースする)</li>
+      <li>音楽キャリア全般に関する個別対話</li>
+    </ul>
+    <div class="callout">
+      <p>Proof動画でお話しした<strong>受講生事例は、すべて、この1年間の中で起きた変化</strong> です。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 04 6つのコンテンツ">
+    <div class="chapter-head"><span class="chapter-num">CH 04</span><h3>6つのコンテンツ ／ 無制限フィードバックの位置</h3><span class="duration">約2.5分</span></div>
+    <p>COLLECTIVE には、6つのコンテンツがあります。</p>
+
+    <div class="judgment-axis">
+      <div class="num">① 専用会員サイト</div>
+      <div class="title">体系コンテンツ ／ 合計13時間以上</div>
+      <p>動画教材『The Workflow Beginner / Advanced』を含む、判断軸を学ぶ体系コンテンツ。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">② 隔週ライブ配信</div>
+      <div class="title">GINPEI が直接話すリアルタイム配信</div>
+      <p>最新トピック・受講生質問・業界動向について、僕が直接話します。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">③ Discord 常駐コミュニティ</div>
+      <div class="title">受講生同士の日常的な交流の場</div>
+      <p>お互いに刺激を受け合う場。「独学で続けるしんどさ」をここで解消できる方も多いです。</p>
+    </div>
+
+    <div class="judgment-axis" style="border: 2px solid var(--accent);">
+      <div class="num">④ 無制限フィードバック ／ COLLECTIVE の核</div>
+      <div class="title">回数制限なし。1曲につき、何度でも、納得するまで。</div>
+      <p>COLLECTIVE の <strong>いちばんの中核</strong>。僕が自分の判断軸で、あなたの楽曲にフィードバックを返します。</p>
+      <p>スクール設計前に、<strong>国内のDTM・音楽制作スクール45社を調査</strong>。<strong>1曲に対する無制限フィードバックを提供しているスクールは、ゼロでした</strong>。回数制限あり・文字だけ・講師チーム振り分け、が業界標準です。</p>
+      <p>なぜ無制限か。<strong>音楽制作の壁は、1回のフィードバックでは越えられない</strong> からです。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">⑤ 質問無制限</div>
+      <div class="title">DAW・プラグイン・ミックス・キャリアまで</div>
+      <p>なんでも質問できます。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">⑥ 月1回の勉強会</div>
+      <div class="title">特定テーマを深堀りするオンライン勉強会</div>
+      <p>受講生のリクエストに応じてテーマを設定します。</p>
+    </div>
+
+    <h4>よくある質問: 「全部1on1指導の方が、丁寧で良いのでは?」</h4>
+    <p>1on1の方がホスピタリティが高く感じる方が多いと思います。でも、1年間の成果で考えると、<strong>COLLECTIVE のハイブリッド構造の方が、1on1指導より優れている</strong>。理由は5つです。</p>
+
+    <div class="judgment-axis">
+      <div class="num">理由 01 ／ 接触量</div>
+      <div class="title">接触回数の桁が違う</div>
+      <p>1on1の業界標準は週1回・1時間=月<strong>約4時間</strong>。COLLECTIVEは1曲につき何度でも、質問も無制限。<strong>月4時間の枠ではなく、いつでも何度でも当てに行ける構造</strong>です。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">理由 02 ／ 資産化</div>
+      <div class="title">教材は「資産」、口頭指導は「忘れる」</div>
+      <p>1on1で言われたことは1週間後には半分忘れます。COLLECTIVEの動画教材(13時間以上)は<strong>何度でも見返せる</strong>。学んだ内容が積み上がります。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">理由 03 ／ 仲間</div>
+      <div class="title">独学の最大の敵「孤独」への対策</div>
+      <p>1on1では孤独は解決しません(講師との閉じた関係)。COLLECTIVEは Discord で<strong>本気の受講生たちが日々刺激し合う空気</strong>がある。これが続ける力になります。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">理由 04 ／ 情報の角度</div>
+      <div class="title">入ってくる情報の角度が、桁違いに多い</div>
+      <p>1on1は講師1人の視点だけ。COLLECTIVEは<strong>僕のフィードバック + 他受講生の質問 + ライブ配信 + Discord</strong>。常に複数の角度から学びが入ります。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">理由 05 ／ コスト効率</div>
+      <div class="title">同じ予算で得られる総量が、まったく違う</div>
+      <p>1on1の業界相場は<strong>月¥30,000〜¥50,000</strong>(週1回1時間)。COLLECTIVEは月¥15,000で、無制限フィードバック+教材+コミュニティ+ライブ配信+勉強会。</p>
+    </div>
+
+    <div class="callout">
+      <p>つまり、「<strong>1on1=ホスピタリティ</strong>」と感じるのは、<strong>自然な錯覚</strong>です。</p>
+      <p>実際には、ホスピタリティの実質量は、<strong>COLLECTIVE の方が、圧倒的に多い</strong>。これが、僕がこのハイブリッド構造を選んでいる、本当の理由です。</p>
+    </div>
+
+    <h4>よくある質問への回答</h4>
+    <ul class="bullet">
+      <li><strong>本業と両立できる?</strong> ― 受講生の多くは本業や学業を持ちながら参加しています。動画教材はいつでも視聴可能、フィードバックも非同期(あなたのタイミングで提出 → 僕がいつでも返信)。<strong>実際、平日は仕事で作業時間が取れず、週末だけ取り組んで、しっかり成果を出している受講生も多数います</strong>。</li>
+      <li><strong>英語力は必要?</strong> ― 不要です。実際、海外レーベルとのやり取りを進めている受講生は、英語力なしで進めています。提出文や交渉文は、僕と一緒に作っていきます。</li>
+      <li><strong>DAWは何を使ってもOK?</strong> ― OKです。<strong>Logic / Ableton Live / Cubase / Studio One / FL Studio</strong> など、どのDAWでも実績を出している受講生がいます。ハイレベルな楽曲を作っている方も、僕と同じLogicユーザーばかりではありません。</li>
+      <li><strong>DAWの操作で詰まったら?</strong> ― 質問無制限で対応します。AI を使った操作の最短ルートも、必要に応じて僕の方からお伝えします。</li>
+      <li><strong>個別相談の枠が取れない不安は?</strong> ― これまで一度も「枠が取れない」というクレームを受けたことは、ありません。</li>
+    </ul>
+  </section>
+
+  <section class="chapter" data-chapter="CH 05 業界相場と価格">
+    <div class="chapter-head"><span class="chapter-num">CH 05</span><h3>業界相場と価格</h3><span class="duration">約2.5分</span></div>
+    <p>料金の話をします。まず、いまの音楽制作スクール業界の相場を、3つの実例で。</p>
+
+    <div class="case-card">
+      <div class="case-num">業界相場 01</div>
+      <div class="case-title">通学型スクール ／ ¥708,400</div>
+      <p>JBG(東京の通学型DTMスクール)の1年プロ指導コース。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">業界相場 02</div>
+      <div class="case-title">1on1 指導型 ／ ¥550,000</div>
+      <p>Music Hearts(オンライン1on1指導)。</p>
+    </div>
+
+    <div class="case-card">
+      <div class="case-num">業界相場 03</div>
+      <div class="case-title">動画教材最上位 ／ ¥491,150</div>
+      <p>日本のDTMオンライン教材最上位クラス(47コマ動画教材)。</p>
+    </div>
+
+    <p>COLLECTIVE の中身は、</p>
+    <ul class="bullet">
+      <li>13時間以上の動画教材</li>
+      <li>隔週ライブ配信</li>
+      <li>Discord 常駐コミュニティ</li>
+      <li>1年間の無制限フィードバック</li>
+      <li>質問無制限</li>
+      <li>月1回の勉強会</li>
+    </ul>
+    <p>これを業界相場で個別に揃えると、<strong>ざっくり162万円相当</strong>になります。</p>
+
+    <p>ですが、COLLECTIVE の価格は、</p>
+
+    <div class="callout">
+      <p><strong>定価: ¥480,000</strong>(業界相場で揃えた場合の約3分の1以下)</p>
+    </div>
+
+    <p>そして、いまご覧の方には<strong>モニター価格</strong>をご用意しています。</p>
+
+    <div class="signature">
+      <div class="label">モニター価格 ／ 120,000円OFF</div>
+      <div class="quote">¥360,000</div>
+    </div>
+
+    <p>サービス開始期のフィードバックをいただく代わりに、定価¥480,000から <strong>¥120,000抑えた価格</strong> です。</p>
+
+    <p>支払い方法は、</p>
+    <ul class="bullet">
+      <li>一括払い</li>
+      <li><strong>24回分割払い(月¥15,000 ／ ジャスト)</strong></li>
+    </ul>
+    <p><strong>1年間でCOLLECTIVEを通して3軸メソッドを実装できれば、その後の音楽制作のすべてで、ずっと使える資産になります</strong>。月¥15,000が現実的な投資かは、ご自身で判断してください。</p>
+
+    <div class="callout">
+      <p><strong>入会金: 無料</strong>(通常 ¥30,000 ／ 今回は不要)</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 06 3大特典">
+    <div class="chapter-head"><span class="chapter-num">CH 06</span><h3>3大特典</h3><span class="duration">約1.5分</span></div>
+    <p>モニター価格でご参加いただく方には、3つの特典をお付けします。</p>
+
+    <div class="judgment-axis">
+      <div class="num">特典 01</div>
+      <div class="title">専用会員サイト 永久視聴権利</div>
+      <p>13時間以上の動画教材を、退会後も含めて、永久に視聴できます。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">特典 02</div>
+      <div class="title">ライブ配信アーカイブ 永久視聴権利</div>
+      <p>隔週ライブ配信のアーカイブも、永久視聴。1年経っても、いつでも見返せます。</p>
+    </div>
+
+    <div class="judgment-axis" style="border: 2px solid var(--accent);">
+      <div class="num">特典 03 ／ いちばん大事</div>
+      <div class="title">結果コミット保証</div>
+      <p>1年間、真剣に取り組んで、それでも楽曲が完成しなかった場合 ― 僕は、サポートを延長します。期限を区切って「ここで終わり」とは言いません。<strong>結果が出るまで、最後まで一緒に向き合います</strong>。</p>
+      <p>ただし、これは「楽するための保証」ではないです。あくまで「真剣に取り組んだ方」に対するコミットです。後で話す「参加してほしい方」と密接に関係します。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 07 参加条件">
+    <div class="chapter-head"><span class="chapter-num">CH 07</span><h3>参加してほしい方 ／ してほしくない方</h3><span class="duration">約2分</span></div>
+    <p>ここから、いちばん大事な話をします。</p>
+    <p>COLLECTIVE は、<strong>全員にお勧めできるスクールではありません</strong>。</p>
+
+    <h4>参加してほしくない方</h4>
+    <ul class="bullet">
+      <li><strong>他責思考の方</strong>(うまくいかないことを、環境・道具・他人のせいにする方)</li>
+      <li>何かを買えば・何かを受講すれば、勝手にスキルが身につく、と思っている方</li>
+      <li>フィードバックを「批判」と受け取って、消化できない方</li>
+    </ul>
+    <p>このタイプの方は、僕がフィードバックを返しても、それが活きません。お互いに、しんどい時間になります。だから、<strong>参加しない方が、お互いのため</strong> です。</p>
+
+    <h4>参加してほしい方</h4>
+    <ul class="bullet">
+      <li>他責思考をしない方(うまくいかない原因を、自分の側に取りに行ける方)</li>
+      <li><strong>本気で、自分の音楽を変えたい方</strong></li>
+      <li>これまで色々やってきたけど、なぜか結果が出ず、もどかしさを抱えている方</li>
+      <li>フィードバックを「成長の材料」として受け取れる方</li>
+    </ul>
+    <p>ここに当てはまる方には、COLLECTIVE は、間違いなく <strong>構造的な突破口</strong> になります。</p>
+
+    <div class="callout">
+      <p>判断材料として、ここまでの3本の動画と、この詳細動画を見て、<strong>「自分はどっち側だろう?」</strong> と一度、自分に問いかけてみてください。</p>
+    </div>
+  </section>
+
+  <section class="chapter" data-chapter="CH 08 個別相談へ ／ お断りすることもあります">
+    <div class="chapter-head"><span class="chapter-num">CH 08</span><h3>個別相談の役割 ／ お断りすることもあります</h3><span class="duration">約2分</span></div>
+
+    <p>「COLLECTIVE が自分に合いそうだ」と感じた方は、<strong>個別相談</strong>に進んでください。</p>
+
+    <p>個別相談は<strong>入会の手続きをする場ではありません</strong>。料金もコンテンツもここまでで全部お伝えしました。個別相談は、<strong>お互いに合うかどうかを、最後に確認する場所</strong>。そして<strong>僕の側からお断りすることも、普通にあります</strong>。</p>
+
+    <h4>なぜ、お断りするのか</h4>
+    <p>COLLECTIVE は1年間、僕が自分の判断軸であなたの楽曲に深く関わる場所。合わない方が入ると、<strong>3つの損失</strong>が出ます。</p>
+
+    <div class="judgment-axis">
+      <div class="num">① その方にとっての損失</div>
+      <div class="title">「思っていたのと違った」1年と、お金が、無駄になる</div>
+      <p><strong>後で「合わなかった」と感じられるくらいなら、最初からお断りした方が、その方のためになります</strong>。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">② 僕にとっての損失</div>
+      <div class="title">合わない方への時間は、本当に合う受講生の時間を削る</div>
+      <p>僕は無制限フィードバックを自分1人で返しています。僕の時間配分は<strong>コミュニティ全体の質に直接影響</strong>します。</p>
+    </div>
+
+    <div class="judgment-axis">
+      <div class="num">③ コミュニティにとっての損失</div>
+      <div class="title">本気の受講生同士が刺激し合う場の純度が下がる</div>
+      <p><strong>スタンスが違う方が混じると、純度が確実に下がります</strong>。いま参加している受講生への、僕の責任の問題でもあります。</p>
+    </div>
+
+    <h4>だから、入ってほしくない方には、はっきりお断りします</h4>
+    <ul class="bullet">
+      <li>フィードバックを「批判」として受け取ってしまう方</li>
+      <li>他責思考が強く、自分の側に原因を取りに行けない方</li>
+      <li>「何かを買えば、勝手にスキルが上がる」と思っている方</li>
+    </ul>
+    <p>このタイプの方には、個別相談の場で「COLLECTIVE は合わないと思います」と、はっきりお伝えします。</p>
+
+    <p>逆に、</p>
+    <ul class="bullet">
+      <li>他責思考をしない方</li>
+      <li>本気で、自分の音楽を変えたい方</li>
+      <li>フィードバックを「成長の材料」として受け取れる方</li>
+    </ul>
+    <p>ここに当てはまる方には、迷わず「やりましょう」と言います。</p>
+
+    <h4>これは、良い人を演じているわけではありません</h4>
+    <div class="callout">
+      <p><strong>僕は、自分が作ったCOLLECTIVE に、本気で自信を持っています</strong>。業界相場の3分の1以下で、日本のスクール45社のどこも提供していない1年間の無制限フィードバックを出している。本当に合う方にとっては、<strong>人生で1回投資すれば十分な、決定的な場所</strong>です。</p>
+      <p>だからこそ、合わない方には絶対に売りたくない。<strong>自信があるからこそ、誰にでも売りたくない</strong>。これが、僕の正直なスタンスです。</p>
+      <p>最後に。<strong>いま物理的に支払いが難しい経済状況</strong>の方は、無理しないでください。COLLECTIVE は1年間の投資です。<strong>まずはご自身の経済基盤を整えてから、改めて検討していただく方が、健全です</strong>。</p>
+    </div>
+
+    <h4>申込フロー</h4>
+    <p>個別相談は、医者と患者の関係と同じで、合わなければ「合わない」と、お互いに言える場にしています。</p>
+
+    <div class="cta-block final">
+      <div class="cta-label">▷ 末尾CTA</div>
+      <p>申込方法は、LINEメニュー『<strong>個別相談を申し込む</strong>』から。Zoom で、約15〜20分。</p>
+      <p>それでは、個別相談で、お会いできるのを楽しみにしています。</p>
+    </div>
+  </section>
+
+  <div class="notes-box">
+    <strong>本動画の運用ノート(達朗さん設定対象)</strong>
+    <ul>
+      <li>本動画の台本本体: <code>funnel_video_v4_day35_collective_details.md</code></li>
+      <li><strong>配信トリガー①(標準ルート)</strong>: Day 3 Proof動画 視聴完了後、同日連続配信(LINE自動)</li>
+      <li><strong>配信トリガー②(早期申込ルート)</strong>: <strong>LINEメニュー『個別相談を申し込む』タップ即時</strong>、自動で本動画リンク + 「面談前に必ずご視聴ください」のメッセージを送信</li>
+      <li>視聴後はそのまま Day 4(声テキスト)→ Day 5(締切テキスト)につながる</li>
+      <li><strong>面談予約時の運用ルール</strong>: 予約フォーム or 自動応答で「詳細動画(Day 3.5)を視聴済みかどうか」を確認。未視聴の場合は予約を一度保留し、視聴後に再予約してもらう</li>
+      <li>撮影方針(別途確定): 全新規撮影 ／ 既存 sales-video-script_v2 の素材流用 ／ どちらか選択</li>
+    </ul>
+  </div>
+</section>
+
+<div class="day-divider"></div>
+
+<!-- ====== Day 4 声テキスト ====== -->
+<section class="day" id="day4-voice" data-day="voice" data-title="Day 4 声テキスト">
+  <div class="day-header text-msg" data-bignum="06">
+    <span class="day-label">Day 4 ／ 声テキスト</span>
+    <div class="day-kind">📨 LINEテキスト(動画なし)</div>
+    <h2>Day 4 個別相談を受けた方々の声</h2>
+    <div class="day-role">「売り込まれない」を伝える受講生の声 ＋ 心理的ハードルを下げる</div>
+    <div class="day-meta">配信タイミング: <b>朝 or 夜(GINPEI判断)</b> ／ 配信担当: <b>達朗さん実装</b></div>
+  </div>
+
+  <div class="notes-box" style="background: #FFF5E5; border: 1px solid #E0A040; color: var(--text);">
+    <strong>📌 達朗さんへの引き継ぎ注釈</strong>
+    <p style="margin: 8px 0 0;">下記のメッセージ文は <strong>GINPEI/Claude側で作成した素案</strong> です。文章が長く、LINE配信としては開封率・通読率が落ちる可能性があります。<strong>達朗さんの方で、内容の要点(受講生の声3本 ／ 個別相談は売り込みではない ／ 明日Day 5締切予告)を保ったまま、コンパクトに再編集した上で配信してください</strong>。LINE配信は短く・読みやすく・スクロール最小限が原則です。</p>
+  </div>
+
+  <div class="msg-card">
+    <div class="msg-label">第1メッセージ: 個別相談を受けた方の声</div>
+    <div class="msg-quote">
+      <p>GINPEIです。<br>個別相談を受けた方の声を、いくつか紹介します。</p>
+      <p>「不安でしたが、たった30分で、自分一人では言語化できなかった課題が見えるようになった」</p>
+      <p>「Proof動画の事例が"特別な人"ではなく、自分との距離が思ったより近いと分かった」</p>
+      <p>「COLLECTIVE に入る・入らない関係なく、次に何をやればいいかが、はっきりした」</p>
+      <p>個別相談は <strong>売り込みの場ではありません</strong>。お互いに合うかを確認する場です。合わなければそれでOK。</p>
+      <p>▼ 申込はLINEメニュー『<strong>個別相談を申し込む</strong>』から<br>※明日、申込締切のご案内をお送りします。</p>
+    </div>
+  </div>
+
+  <div class="notes-box">
+    <strong>配信ルール</strong>
+    <ul>
+      <li>長文OKだが、改行と空白行で読みやすく</li>
+      <li>売り込み感を出さない</li>
+      <li>「合わなければOK」を明示して心理的ハードルを下げる</li>
+      <li>明日(Day 5)の締切予告で次の動線を作る</li>
+    </ul>
+  </div>
+</section>
+
+<div class="day-divider"></div>
+
+<!-- ====== Day 5 締切テキスト ====== -->
+<section class="day" id="day5-closing" data-day="closing" data-title="Day 5 締切テキスト">
+  <div class="day-header text-msg" data-bignum="07">
+    <span class="day-label">Day 5 ／ 締切テキスト</span>
+    <div class="day-kind">📨 LINEテキスト(動画なし)・最終日</div>
+    <h2>Day 5 個別相談 申込締切リマインド</h2>
+    <div class="day-role">本日23:59締切 ＋ 最後の動線 ＋ 「やった後悔よりやらなかった後悔」</div>
+    <div class="day-meta">配信タイミング: <b>締切日の朝・昼・夜の複数回(GINPEI判断)</b> ／ 配信担当: <b>達朗さん実装</b></div>
+  </div>
+
+  <div class="notes-box" style="background: #FFF5E5; border: 1px solid #E0A040; color: var(--text);">
+    <strong>📌 達朗さんへの引き継ぎ注釈</strong>
+    <p style="margin: 8px 0 0;">下記のメッセージ文は <strong>GINPEI/Claude側で作成した素案</strong> です。締切日の配信は朝・昼・夜の複数回送信する想定なので、<strong>達朗さんの方で、長文のリマインドだけでなく、時間帯別に短く・要点だけのコンパクト版を含めて再編集してください</strong>(例: 朝便=締切告知のみ短く / 夜便=最後のリマインドのみ短く)。GINPEIブランド原則「煽らない・断定しない・感謝で締める」を維持。</p>
+  </div>
+
+  <div class="msg-card">
+    <div class="msg-label">朝便: 締切告知</div>
+    <div class="msg-quote">
+      <p>GINPEIです。<br>本日 <strong>23:59 で個別相談の枠が閉じます</strong>。</p>
+      <p>個別相談は僕が1人で対応しているため、人数に限りがあります。</p>
+      <p>▼ 申込はLINEメニュー『<strong>個別相談を申し込む</strong>』から</p>
+    </div>
+  </div>
+
+  <div class="msg-card">
+    <div class="msg-label">昼便: やった後悔 vs やらなかった後悔</div>
+    <div class="msg-quote">
+      <p>4日間お読みいただき、ありがとうございました。</p>
+      <p>「やっぱり気になる」「話だけ聞いてみたい」という気持ちが少しでもあれば、いまのタイミングで申し込んでみてください。</p>
+      <p>本日 <strong>23:59</strong> が最終締切です。</p>
+    </div>
+  </div>
+
+  <div class="msg-card">
+    <div class="msg-label">夜便: 最終リマインド ＋ 感謝</div>
+    <div class="msg-quote">
+      <p>本日23:59、個別相談の枠が閉じます。</p>
+      <p>4日間、本当にありがとうございました。<br>個別相談で、お会いできるのを楽しみにしています。</p>
+      <p>GINPEI</p>
+    </div>
+  </div>
+
+  <div class="notes-box">
+    <strong>配信ルール</strong>
+    <ul>
+      <li>緊急性は出すが、煽らない(「絶対」「必ず」断定NG・GINPEIブランド維持)</li>
+      <li>本日23:59明示で明確な締切</li>
+      <li>「やった後悔より、やらなかった後悔」は普遍的な共感ワード</li>
+      <li>最後は感謝で締める</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div><strong>COLLECTIVE LINEファネル v4</strong></div>
+  <div style="margin-top: 8px;">出典: <code>~/Documents/GINPEI-Business/_handoff/funnel_education_3videos_pivot_2026-05-22.md</code></div>
+</footer>
+
+</main>
+
+<!-- 右TOC (デスクトップ用・現在の動画内の章リスト＋読了時間＋ショートカット) -->
+<aside class="toc-rail" id="toc-rail">
+  <div class="toc-rail-title">この動画の章</div>
+  <ul id="toc-rail-list">
+    <li><a href="#" style="opacity:0.5">スクロールすると<br>章リストが表示されます</a></li>
+  </ul>
+
+  <div class="toc-meta">
+    <div class="toc-meta-label">読了進捗</div>
+    <div class="toc-meta-value" id="toc-read-progress">0%</div>
+    <div class="toc-meta-sub" id="toc-read-remaining">— ／ —</div>
+  </div>
+
+  <div class="toc-shortcuts">
+    <div class="toc-shortcuts-title">⌨ ショートカット</div>
+    <div><kbd>J</kbd> / <kbd>K</kbd> 章移動</div>
+    <div><kbd>T</kbd> ダーク切替</div>
+    <div><kbd>M</kbd> 目次</div>
+    <div><kbd>+</kbd> / <kbd>−</kbd> 文字サイズ</div>
+    <div><kbd>Home</kbd> / <kbd>End</kbd> 先頭/末尾</div>
+  </div>
+</aside>
+
+</div>
+
+<!-- モバイル用 底面コントロールバー(iPhone safe area対応) -->
+<nav class="mobile-bottombar" role="toolbar" aria-label="リーディング操作">
+  <button class="mobile-bb-btn" id="mb-toc" type="button" aria-label="目次">
+    <span class="icon">☰</span><span class="label">目次</span>
+  </button>
+  <button class="mobile-bb-btn" id="mb-prev" type="button" aria-label="前の章">
+    <span class="icon">↑</span><span class="label">前章</span>
+  </button>
+  <button class="mobile-bb-btn" id="mb-next" type="button" aria-label="次の章">
+    <span class="icon">↓</span><span class="label">次章</span>
+  </button>
+  <button class="mobile-bb-btn" id="mb-font" type="button" aria-label="文字サイズ">
+    <span class="icon">Aa</span><span class="label">文字</span>
+  </button>
+  <button class="mobile-bb-btn" id="mb-theme" type="button" aria-label="ダーク切替">
+    <span class="icon">◐</span><span class="label">配色</span>
+  </button>
+</nav>
+
+<script>
+// === 現在位置トラッキング ===
+const sections = Array.from(document.querySelectorAll('section.day'));
+const chapters = Array.from(document.querySelectorAll('section.chapter'));
+const navLinks = Array.from(document.querySelectorAll('.sidebar-nav a'));
+
+const dayMeta = {
+  welcome: { label: 'Day 1 ／ 挨拶テキスト', short: 'Day 1 挨拶' },
+  why:     { label: 'Day 1 ／ Why動画', short: 'Day 1 Why' },
+  how:     { label: 'Day 2 ／ How動画', short: 'Day 2 How' },
+  proof:   { label: 'Day 3 ／ Proof動画', short: 'Day 3 Proof' },
+  sales:   { label: 'Day 3.5 ／ COLLECTIVE 詳細動画', short: 'Day 3.5 詳細動画' },
+  voice:   { label: 'Day 4 ／ 声テキスト', short: 'Day 4 声' },
+  closing: { label: 'Day 5 ／ 締切テキスト', short: 'Day 5 締切' },
+};
+
+function updateCurrent() {
+  const scrollY = window.scrollY + 100; // オフセット
+  let currentSection = null;
+  let currentChapter = null;
+
+  for (const sec of sections) {
+    if (sec.offsetTop <= scrollY) currentSection = sec;
+  }
+  for (const ch of chapters) {
+    if (ch.offsetTop <= scrollY + 40) currentChapter = ch;
+  }
+
+  if (!currentSection) {
+    document.body.removeAttribute('data-current');
+    document.getElementById('sidebar-current-day').textContent = 'TOP';
+    document.getElementById('sidebar-current-title').textContent = '通読サイト概要';
+    document.getElementById('sidebar-current-chapter').style.display = 'none';
+    document.getElementById('mobile-current-info').textContent = 'TOP ／ 通読サイト概要';
+    document.getElementById('mobile-current-chapter').textContent = '';
+    navLinks.forEach(a => a.classList.remove('active'));
+    return;
+  }
+
+  const dayKey = currentSection.dataset.day;
+  document.body.setAttribute('data-current', dayKey);
+  const meta = dayMeta[dayKey];
+
+  document.getElementById('sidebar-current-day').textContent = meta.label;
+  document.getElementById('sidebar-current-title').textContent = currentSection.dataset.title;
+
+  // 現在の章を表示(動画3本のみ)
+  if (currentChapter && ['why', 'how', 'proof'].includes(dayKey)) {
+    // 章が現在のDay内に属しているか確認
+    const chapterSec = currentChapter.closest('section.day');
+    if (chapterSec === currentSection) {
+      document.getElementById('sidebar-current-chapter').style.display = 'block';
+      document.getElementById('sidebar-current-chapter').textContent = currentChapter.dataset.chapter || '';
+      document.getElementById('mobile-current-chapter').textContent = currentChapter.dataset.chapter || '';
+    } else {
+      document.getElementById('sidebar-current-chapter').style.display = 'none';
+      document.getElementById('mobile-current-chapter').textContent = '';
+    }
+  } else {
+    document.getElementById('sidebar-current-chapter').style.display = 'none';
+    document.getElementById('mobile-current-chapter').textContent = '';
+  }
+
+  document.getElementById('mobile-current-info').textContent = meta.label;
+
+  // サイドバーのactive表示
+  navLinks.forEach(a => {
+    if (a.dataset.target === currentSection.id) a.classList.add('active');
+    else a.classList.remove('active');
+  });
+
+  // ブランド色のヘッダー更新
+  document.getElementById('sidebar-brand').textContent = meta.label;
+}
+
+window.addEventListener('scroll', () => { updateCurrent(); updateScrollProgress(); }, { passive: true });
+window.addEventListener('load', updateCurrent);
+updateCurrent();
+
+// モバイル用ナビをサイドバーから複製
+document.getElementById('mobile-nav-list').innerHTML = document.getElementById('sidebar-nav').outerHTML;
+document.querySelectorAll('#mobile-nav-list a').forEach(a => {
+  a.addEventListener('click', () => document.getElementById('mobile-drawer').classList.remove('open'));
+});
+
+// === Solo-Video Mode: URLパラメータ ?v=why|how|proof|details|texts で該当セクションのみ表示 ===
+(function soloMode() {
+  const params = new URLSearchParams(window.location.search);
+  const soloKey = params.get('v');
+  if (!soloKey) return;
+  const validKeys = ['why', 'how', 'proof', 'sales', 'details', 'texts'];
+  const normalizedKey = soloKey === 'details' ? 'sales' : soloKey;
+  if (!validKeys.includes(normalizedKey)) return;
+
+  document.documentElement.classList.add('solo-mode');
+  const hideOthers = (keepDays) => {
+    document.querySelectorAll('section.day').forEach(s => {
+      if (!keepDays.includes(s.dataset.day)) s.style.display = 'none';
+    });
+  };
+
+  if (normalizedKey === 'texts') {
+    // テキスト配信3本のみ表示
+    hideOthers(['welcome', 'voice', 'closing']);
+  } else {
+    // 動画1本のみ表示
+    hideOthers([normalizedKey]);
+  }
+
+  // day-divider・ファネルマップ・ヒーローを非表示
+  document.querySelectorAll('.day-divider').forEach(d => d.style.display = 'none');
+  const funnelMap = document.querySelector('.funnel-map');
+  if (funnelMap) funnelMap.style.display = 'none';
+  const hero = document.querySelector('.hero');
+  if (hero) hero.style.display = 'none';
+
+  // タイトル動的設定
+  const titles = {
+    why:     'Day 1 ／ Why動画',
+    how:     'Day 2 ／ How動画',
+    proof:   'Day 3 ／ Proof動画',
+    sales:   'Day 3.5 ／ COLLECTIVE 詳細動画',
+    texts:   'LINE テキスト配信 3本まとめ(Day 1 挨拶 ／ Day 4 声 ／ Day 5 締切)',
+  };
+  document.title = (titles[normalizedKey] || '') + ' ／ COLLECTIVE LINEファネル v4';
+  // body data-current で配色適用
+  document.body.setAttribute('data-current', normalizedKey === 'texts' ? 'welcome' : normalizedKey);
+})();
+
+// === スクロール進捗バー + 読了時間表示 ===
+const progressBar = document.getElementById('scroll-progress-bar');
+const tocReadProgress = document.getElementById('toc-read-progress');
+const tocReadRemaining = document.getElementById('toc-read-remaining');
+
+// 全文の文字数を一度だけ計算(読了時間用・日本語は分速約600文字)
+const totalChars = (document.body.innerText || '').length;
+const totalMin = Math.max(1, Math.round(totalChars / 600));
+
+function updateScrollProgress() {
+  const doc = document.documentElement;
+  const scrolled = doc.scrollTop || document.body.scrollTop;
+  const height = (doc.scrollHeight - doc.clientHeight) || 1;
+  const pct = Math.min(100, Math.max(0, (scrolled / height) * 100));
+  if (progressBar) progressBar.style.width = pct + '%';
+  if (tocReadProgress) tocReadProgress.textContent = Math.round(pct) + '%';
+  if (tocReadRemaining) {
+    const remainMin = Math.max(0, Math.round(totalMin * (1 - pct / 100)));
+    tocReadRemaining.textContent = `あと約 ${remainMin}分 ／ 全 ${totalMin}分`;
+  }
+}
+updateScrollProgress();
+
+// === 右TOC 動的更新(現在のDay内の章リスト) ===
+const tocList = document.getElementById('toc-rail-list');
+function updateTocRail() {
+  if (!tocList) return;
+  const sec = document.querySelector('section.day[data-current], section.day');
+  const scrollY = window.scrollY + 100;
+  let curDay = null;
+  for (const s of sections) if (s.offsetTop <= scrollY) curDay = s;
+  if (!curDay) { tocList.innerHTML = '<li><a href="#hero" style="opacity:0.6">— TOPに戻る</a></li>'; return; }
+  const inDayChapters = curDay.querySelectorAll('section.chapter');
+  if (inDayChapters.length === 0) {
+    tocList.innerHTML = `<li><a href="#${curDay.id}" class="active">${curDay.dataset.title || ''}</a></li>`;
+    return;
+  }
+  let curCh = null;
+  for (const c of inDayChapters) if (c.offsetTop <= scrollY + 40) curCh = c;
+  const html = [`<li><a href="#${curDay.id}" style="font-weight:700;letter-spacing:0.02em;">${curDay.dataset.title || ''}</a></li>`];
+  inDayChapters.forEach(ch => {
+    const isActive = ch === curCh ? 'active' : '';
+    const label = ch.dataset.chapter || ch.id;
+    html.push(`<li><a href="#${ch.id}" class="${isActive}">${label}</a></li>`);
+  });
+  tocList.innerHTML = html.join('');
+}
+updateTocRail();
+window.addEventListener('scroll', updateTocRail, { passive: true });
+
+// === ダーク/ライトモード切替 ===
+const themeBtn = document.getElementById('ctrl-theme');
+const savedTheme = localStorage.getItem('funnel-theme');
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+document.body.setAttribute('data-theme', initialTheme);
+themeBtn.textContent = initialTheme === 'dark' ? '☀' : '◐';
+themeBtn.addEventListener('click', () => {
+  const cur = document.body.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.body.setAttribute('data-theme', next);
+  themeBtn.textContent = next === 'dark' ? '☀' : '◐';
+  localStorage.setItem('funnel-theme', next);
+});
+
+// === フォントサイズ調整 ===
+const SCALE_KEY = 'funnel-read-scale';
+const scaleMin = 0.85, scaleMax = 1.35, scaleStep = 0.1;
+let scale = parseFloat(localStorage.getItem(SCALE_KEY) || '1');
+function applyScale() {
+  scale = Math.min(scaleMax, Math.max(scaleMin, scale));
+  document.documentElement.style.setProperty('--read-scale', scale.toFixed(2));
+  localStorage.setItem(SCALE_KEY, scale.toFixed(2));
+}
+applyScale();
+document.getElementById('ctrl-font-up').addEventListener('click', () => { scale += scaleStep; applyScale(); });
+document.getElementById('ctrl-font-down').addEventListener('click', () => { scale -= scaleStep; applyScale(); });
+
+// === Scroll Reveal アニメーション(IO対応・かつ「途中で消える」を防ぐsafety net付き) ===
+const isReduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const allRevealEls = document.querySelectorAll('section.day, section.chapter');
+if ('IntersectionObserver' in window && !isReduceMotion) {
+  document.documentElement.classList.add('scroll-reveal');
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in-view');
+        revealObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.01, rootMargin: '0px 0px 0px 0px' });
+  allRevealEls.forEach(el => revealObs.observe(el));
+  // Safety net: 4秒経っても in-view 付かない要素は強制visibleに
+  setTimeout(() => {
+    allRevealEls.forEach(el => {
+      if (!el.classList.contains('in-view')) el.classList.add('in-view');
+    });
+  }, 4000);
+  // 追加 safety: 初回スクロールイベント時に画面内にあるが in-view 未付与の要素を救済
+  const safetyScroll = () => {
+    allRevealEls.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0 && !el.classList.contains('in-view')) {
+        el.classList.add('in-view');
+      }
+    });
+  };
+  window.addEventListener('scroll', safetyScroll, { passive: true, once: false });
+} else {
+  // 非対応ブラウザ/モーション低減設定: スクロールリビール自体を無効化(CSSも効かない)
+  allRevealEls.forEach(el => el.classList.add('in-view'));
+}
+
+// === 章末ナビゲーション(前/次の章)は撤去 ===
+// GINPEI判断（2026-05-23）: 前後の流れは画面遷移で十分わかるため、
+// 各章末に挿入していた .chapter-nav は生成しない。
+// section.chapter にidだけは付与しておく（J/K キー移動・スクロール位置検出のため）
+(function ensureChapterIds() {
+  Array.from(document.querySelectorAll('section.chapter')).forEach((ch, i) => {
+    if (!ch.id) ch.id = 'ch-' + i;
+  });
+})();
+
+// === モバイル底面バーのイベント ===
+function jumpChapter(direction) {
+  const allCh = Array.from(document.querySelectorAll('section.chapter'));
+  const scrollY = window.scrollY + 80;
+  let curIdx = -1;
+  allCh.forEach((c, i) => { if (c.offsetTop <= scrollY) curIdx = i; });
+  const targetIdx = direction === 'next' ? Math.min(allCh.length - 1, curIdx + 1) : Math.max(0, curIdx - 1);
+  const target = allCh[targetIdx];
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+document.getElementById('mb-toc')?.addEventListener('click', () => document.getElementById('mobile-drawer').classList.add('open'));
+document.getElementById('mb-prev')?.addEventListener('click', () => jumpChapter('prev'));
+document.getElementById('mb-next')?.addEventListener('click', () => jumpChapter('next'));
+document.getElementById('mb-theme')?.addEventListener('click', () => themeBtn.click());
+document.getElementById('mb-font')?.addEventListener('click', () => {
+  // 文字サイズ循環: 1.0 → 1.1 → 1.2 → 0.9 → 1.0
+  const steps = [1.0, 1.1, 1.2, 0.9];
+  const cur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--read-scale')) || 1;
+  const idx = steps.findIndex(s => Math.abs(s - cur) < 0.05);
+  const next = steps[(idx + 1) % steps.length];
+  scale = next;
+  applyScale();
+});
+
+// === キーボードショートカット ===
+document.addEventListener('keydown', (e) => {
+  // 入力中は無効
+  if (e.target.matches('input, textarea, [contenteditable]')) return;
+  const allCh = Array.from(document.querySelectorAll('section.chapter'));
+  const scrollY = window.scrollY + 80;
+  let curIdx = 0;
+  allCh.forEach((c, i) => { if (c.offsetTop <= scrollY) curIdx = i; });
+  if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowDown' && e.shiftKey) {
+    e.preventDefault();
+    const target = allCh[Math.min(allCh.length - 1, curIdx + 1)];
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (e.key === 'k' || e.key === 'K' || e.key === 'ArrowUp' && e.shiftKey) {
+    e.preventDefault();
+    const target = allCh[Math.max(0, curIdx - 1)];
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else if (e.key === 't' || e.key === 'T') {
+    // テーマトグル
+    themeBtn.click();
+  } else if (e.key === 'm' || e.key === 'M') {
+    // モバイルメニュー(デスクトップでも開ける)
+    document.getElementById('mobile-drawer').classList.toggle('open');
+  } else if (e.key === '+' || e.key === '=') {
+    document.getElementById('ctrl-font-up').click();
+  } else if (e.key === '-' || e.key === '_') {
+    document.getElementById('ctrl-font-down').click();
+  } else if (e.key === 'Home') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else if (e.key === 'End') {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+});
+</script>
+
+<!-- BudouX Web Component: 日本語文節境界を自動判定して <wbr> を挿入し、自然な改行位置にする -->
+<script src="https://unpkg.com/budoux@0.8.4/bundle/budoux-ja.min.js" defer></script>
+<style>
+budoux-ja { display: inline; }
+</style>
+<script>
+// BudouX 0.8.4 のバンドル版は <budoux-ja> Web Component を登録するだけで、
+// グローバル変数は公開しない。そのため対象要素を <budoux-ja> でラップして
+// 自然な日本語改行を実現する。
+function wrapWithBudouX() {
+  // カスタム要素が登録されるまで待機
+  if (!customElements.get('budoux-ja')) { setTimeout(wrapWithBudouX, 200); return; }
+  const selectors = [
+    'main p',
+    '.hero h1', '.hero .lead',
+    '.day-header h2', '.day-header .day-role', '.day-header .day-meta',
+    '.chapter-head h3',
+    '.funnel-map h3', '.funnel-sub',
+    '.funnel-step .step-title', '.funnel-step .step-desc', '.funnel-step .step-tag',
+    'h4',
+    'ul.bullet li', '.summary-list li',
+    '.narration p', '.callout p', '.msg-quote p', '.msg-card p',
+    '.case-card .case-title', '.case-card p',
+    '.judgment-axis .title', '.judgment-axis p',
+    '.afsheen-fb .title', '.afsheen-fb p',
+    '.signature .quote',
+    '.situation',
+    '.notes-box', '.notes-box li',
+    '.meta-box dd',
+    '.cta-block p',
+    '.next-episode .title',
+    '.sidebar-current-title', '.sidebar-title',
+  ];
+  document.querySelectorAll(selectors.join(',')).forEach(el => {
+    // 既にbudoux-jaが適用済みならスキップ
+    if (el.querySelector(':scope > budoux-ja')) return;
+    if (el.closest('budoux-ja')) return;
+    try {
+      const wrapper = document.createElement('budoux-ja');
+      // 子要素を全部 wrapper の中に移動
+      while (el.firstChild) {
+        wrapper.appendChild(el.firstChild);
+      }
+      el.appendChild(wrapper);
+    } catch (e) {
+      console.warn('BudouX wrap failed for:', el, e);
+    }
+  });
+}
+window.addEventListener('load', () => setTimeout(wrapWithBudouX, 100));
+// DOMContentLoadedでも実行(deferスクリプトより先に走る場合のフォールバック)
+if (document.readyState !== 'loading') {
+  setTimeout(wrapWithBudouX, 200);
+} else {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(wrapWithBudouX, 200));
+}
+</script>
+
+</body>
+</html>
