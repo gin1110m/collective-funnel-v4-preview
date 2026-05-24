@@ -483,8 +483,29 @@ html.solo-mode section.day .day-header { margin-top: 0; }
 
 /* ===== ミニマル化(GINPEI指示 2026-05-24): 進捗バーだけ残して他のUIは全削除 ===== */
 .sidebar, .toc-rail, .mobile-nav, .mobile-bottombar, .controls, .site-footer,
-.mobile-menu-drawer, .mobile-menu-inner, .mobile-menu-btn, .mobile-menu-close {
+.mobile-menu-drawer, .mobile-menu-inner, .mobile-menu-btn, .mobile-menu-close,
+.funnel-legend {
   display: none !important;
+}
+
+/* Zoom 個別相談ブロックは Zoom Blue (#2D8CFF) に固定 */
+.funnel-step[data-color="meet"],
+[data-theme="dark"] .funnel-step[data-color="meet"] {
+  background: #2D8CFF !important;
+  color: #FFFFFF !important;
+  border-color: #2D8CFF !important;
+}
+.funnel-step[data-color="meet"] .step-title,
+[data-theme="dark"] .funnel-step[data-color="meet"] .step-title {
+  color: #FFFFFF !important;
+}
+.funnel-step[data-color="meet"] .step-tag,
+[data-theme="dark"] .funnel-step[data-color="meet"] .step-tag {
+  color: rgba(255,255,255,0.9) !important;
+}
+.funnel-step[data-color="meet"] .step-desc,
+[data-theme="dark"] .funnel-step[data-color="meet"] .step-desc {
+  color: rgba(255,255,255,0.85) !important;
 }
 .layout {
   grid-template-columns: minmax(0, 1fr) !important;
