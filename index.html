@@ -481,6 +481,25 @@ html.solo-mode section.day .day-header { margin-top: 0; }
   html.solo-mode .main { padding-top: 24px; }
 }
 
+/* ===== ミニマル化(GINPEI指示 2026-05-24): 進捗バーだけ残して他のUIは全削除 ===== */
+.sidebar, .toc-rail, .mobile-nav, .mobile-bottombar, .controls, .site-footer {
+  display: none !important;
+}
+.layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+  max-width: 880px !important;
+  margin: 0 auto !important;
+}
+.main {
+  padding: 48px 32px 80px !important;
+  margin: 0 auto !important;
+  max-width: 880px !important;
+}
+@media (max-width: 767px) {
+  .layout { max-width: 100vw !important; }
+  .main { padding: 24px 16px 60px !important; }
+}
+
 /* ===== ファネル全体像（1枚図） ===== */
 .funnel-map {
   margin: 24px 0 96px;
